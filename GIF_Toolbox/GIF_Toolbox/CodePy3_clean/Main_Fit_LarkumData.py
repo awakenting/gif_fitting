@@ -5,10 +5,10 @@ More instructions are provided on the website.
 
 from Experiment import *
 from AEC_Badel import *
-from GIF import *
-from GIF_pow import *
+from TwoComp_passive import *
 from Filter_Rect_LogSpaced import *
 from Filter_Powerlaw import *
+from Filter_ThreeExpos import *
 
 import Tools
 import numpy as np
@@ -40,8 +40,7 @@ traceT = traceLen*dt
 myExp = Experiment('Experiment 1',dt)
 
 # Add training set data
-myExp.addTrainingSetTrace(testVs, 10**-3, testIs , 10**-12, traceT, FILETYPE='Array')
-
+myExp.addTrainingSetTrace_TwoComp(testVs, 10**-3, testIs , 10**-12, testVd, 10**-3, testId , 10**-12, traceT, FILETYPE='Array')
 
 # Plot data
 #myExp.plotTrainingSet()
@@ -52,35 +51,31 @@ myExp.addTrainingSetTrace(testVs, 10**-3, testIs , 10**-12, traceT, FILETYPE='Ar
 ############################################################################################################
 
 # Create a new object GIF 
-myGIF_rect = GIF(0.1)
+myGIF = TwoComp_passive(0.1)
 
 # Define parameters
-myGIF_rect.Tref = 4.0  
+myGIF.Tref = 4.0
+filterLength = 1000.0
 
-myGIF_rect.eta = Filter_Rect_LogSpaced()
-myGIF_rect.eta.setMetaParameters(length=1000.0, binsize_lb=2.0, binsize_ub=1000.0, slope=4.5)
+myGIF.eta_A = Filter_Powerlaw()
+myGIF.eta_A.setMetaParameters(length=filterLength, Tconst=5, power=-0.8, powerTime=2000)
 
-myGIF_rect.gamma = Filter_Rect_LogSpaced()
-myGIF_rect.gamma.setMetaParameters(length=1000.0, binsize_lb=5.0, binsize_ub=1000.0, slope=5.0)
+myGIF.k_s = Filter_ThreeExpos()
+myGIF.k_s.setMetaParameters(length=filterLength)
 
-# Create a new object GIF 
-myGIF_pow = GIF_pow(0.1)
+myGIF.e_ds = Filter_ThreeExpos()
+myGIF.e_ds.setMetaParameters(length=filterLength)
 
-# Define parameters
-myGIF_pow.Tref = 4.0 
+# initialize coefficients for filters
+initial_powerlaw_coeffs = np.array([0.2, 1])
+initial_threeExpos_coeffs = np.array([1,1,1])
 
-myGIF_pow.eta = Filter_Powerlaw()
-myGIF_pow.eta.setMetaParameters(length=1000.0, Tconst=5, power=-0.8, powerTime=2000)
-
-myGIF_pow.gamma = Filter_Powerlaw()
-myGIF_pow.gamma.setMetaParameters(length=1000.0, Tconst=5, power=-0.8, powerTime=2000)
-
-powerlaw_coeffs = np.array([0.2,1])
-myGIF_pow.eta.setFilter_Coefficients(powerlaw_coeffs)
-myGIF_pow.gamma.setFilter_Coefficients(powerlaw_coeffs)
+myGIF.eta_A.setFilter_Coefficients(initial_powerlaw_coeffs)
+myGIF.k_s.setFilter_Coefficients(initial_threeExpos_coeffs)
+myGIF.e_ds.setFilter_Coefficients(initial_threeExpos_coeffs)
 
 # Define the ROI of the training set to be used for the fit (in this example we will use only the first 100 s)
-myExp.trainingset_traces[0].setROI([[0,100000.0]])
+#myExp.trainingset_traces[0].setROI([[0,100000.0]])
 
 # detect Spikes
 myExp.detectSpikes_cython()
@@ -89,15 +84,12 @@ myExp.detectSpikes_cython()
 #myExp.plotTrainingSet()
 
 # Perform the fit
-myGIF_rect.fit(myExp, DT_beforeSpike=5.0)
-myGIF_pow.fit(myExp, DT_beforeSpike=5.0)
+myGIF.fit(myExp)
 
 
 # Plot the model parameters
-myGIF_rect.printParameters()
-myGIF_pow.printParameters()
-myGIF_rect.plotParameters()   
-myGIF_pow.plotParameters()   
+myGIF.printParameters()
+myGIF.plotParameters()   
 
 # Save the model
 #myGIF.save('./myGIF.pck')
@@ -107,15 +99,15 @@ myGIF_pow.plotParameters()
 ###############################################################################
 '''
 for pw in [-0.6,-0.7,-0.8,-0.9]:
-    myGIF_pow.eta = Filter_Powerlaw()
-    myGIF_pow.eta.setMetaParameters(length=1000.0, Tconst=5, power=pw, powerTime=2000)
+    myGIF.eta_A = Filter_Powerlaw()
+    myGIF.eta_A.setMetaParameters(length=1000.0, Tconst=5, power=pw, powerTime=2000)
     
-    myGIF_pow.gamma = Filter_Powerlaw()
-    myGIF_pow.gamma.setMetaParameters(length=1000.0, Tconst=5, power=pw, powerTime=2000)
+    myGIF.k_s = Filter_Powerlaw()
+    myGIF.k_s.setMetaParameters(length=1000.0, Tconst=5, power=pw, powerTime=2000)
     
     powerlaw_coeffs = np.array([0.2,1])
-    myGIF_pow.eta.setFilter_Coefficients(powerlaw_coeffs)
-    myGIF_pow.gamma.setFilter_Coefficients(powerlaw_coeffs)
+    myGIF.eta_A.setFilter_Coefficients(powerlaw_coeffs)
+    myGIF.k_s.setFilter_Coefficients(powerlaw_coeffs)
     
     # Perform the fit
     myGIF_rect.fit(myExp, DT_beforeSpike=5.0)
@@ -124,11 +116,11 @@ for pw in [-0.6,-0.7,-0.8,-0.9]:
     print ("# Fit GIF_pow")
     print ("################################\n")
     
-    myGIF_pow.fitVoltageReset(myExp, myGIF_pow.Tref, do_plot=False)
+    myGIF.fitVoltageReset(myExp, myGIF.Tref, do_plot=False)
     
-    myGIF_pow.fitSubthresholdDynamics(myExp, DT_beforeSpike=5.0)
+    myGIF.fitSubthresholdDynamics(myExp, DT_beforeSpike=5.0)
     
     myGIF_rect.plotParameters()   
-    myGIF_pow.plotParameters() 
+    myGIF.plotParameters() 
 '''
 

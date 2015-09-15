@@ -35,15 +35,18 @@ class Trace :
         self.I     = 0                         # nA, subthreshold somatic input current
         self.V_rec = 0                         # mV, recorded somatic membrane potential   
         
-        self.I_d     = 0                         # nA, subthreshold dendritic input current
-        self.V_d_rec = 0                         # mV, recorded dendritic membrane potential 
+        self.I_d     = 0                       # nA, subthreshold dendritic input current
+        self.V_d_rec = 0                       # mV, recorded dendritic membrane potential 
 
         self.AEC_flag    = False               # Has the trace been preprocessed with AEC?
         self.V           = 0                   # mV, somatic membrane potential (after AEC)
         self.V_d           = 0                   # mV, dendritic membrane potential (after AEC)
         
-        self.spks_flag   = False               # Do spikes have been detected?
-        self.spks        = 0                   # spike indices stored in indices (and not in ms!)  
+        self.spks_flag   = False               # Do somatic spikes have been detected?
+        self.spks        = 0                   # dendritic spike indices stored in indices (and not in ms!)
+        
+        self.spks_d_flag   = False             # Do dendritic spikes have been detected?
+        self.spks_d        = 0                 # dendritic spike indices stored in indices (and not in ms!)
                 
         self.useTrace    = True                # if false this trace will be neglected while fitting spiking models to data        
         self.ROI         = [[0.0,T]]           # ms, list of intervals defining the region of the trace that has to be used for fitting
@@ -230,6 +233,15 @@ class Trace :
                         
         self.spks = np.array(self.spks)
         self.spks_flag = True
+        
+    def detect_dendritic_Spikes_python(self, threshold=0.0, ref=3.0):
+        
+        """
+        This function shall detect "dendritic spikes" but first I have to find
+        a good definition for them, since they're more variable than the 
+        somatic ones. It should also be implemented in cython as well.
+        """ 
+        
 
         
     def detectSpikes_cython(self, threshold=0.0, ref=3.0):
@@ -295,6 +307,11 @@ class Trace :
         spike_nb  = len(all_spikes)
         
         return (support, spike_avg, spike_nb)
+        
+    def computeAverage_dendriticSpikeShape(self):
+        """
+        This function shall compute the average shape of a "dendritic spike"
+        """
 
 
     def getSpikeTrain(self):

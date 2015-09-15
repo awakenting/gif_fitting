@@ -5,7 +5,7 @@ import numpy as np
 from numpy.linalg import inv
 
 from ThresholdModel import *
-from Filter_Rect_LogSpaced import *
+from Filter_ThreeExpos import *
 from Filter_Powerlaw import *
 
 from Tools import reprint
@@ -33,15 +33,8 @@ class TwoComp_passive(ThresholdModel) :
   
         # Define model parameters
         
-        self.gl      = 1.0/100.0        # nS, leak conductance
-        self.C       = 20.0*self.gl     # nF, capacitance
-        self.El      = -65.0            # mV, reversal potential
-        
-        self.Vr      = -50.0            # mV, voltage reset
         self.Tref    = 4.0              # ms, absolute refractory period
         
-        self.Vt_star = -48.0            # mV, steady state voltage threshold VT*
-        self.DV      = 0.5              # mV, threshold sharpness
         self.lambda0 = 1.0              # by default this parameter is always set to 1.0 Hz
         
         self.k_s       = Filter_ThreeExpos()  # nA, kernel of somatic membrane filter
@@ -247,7 +240,7 @@ class TwoComp_passive(ThresholdModel) :
         self.printParameters()
           
         
-    def maximizeLikelihood(self, experiment, theta0, buildXmatrix, maxIter=1e03, stopCond=1e-06) :
+    def maximizeLikelihood(self, experiment, theta0, buildXmatrix, maxIter=int(1e03), stopCond=1e-06) :
     
         """
         Maximize likelihood. This function can be used to fit any model of the form lambda=exp(Xtheta).
@@ -318,7 +311,7 @@ class TwoComp_passive(ThresholdModel) :
             # Compute normalized likelihood (for print)
             # The likelihood is normalized with respect to a poisson process and units are in bit/spks
             L_norm = (L-logL_poisson)/np.log(2)/N_spikes_tot
-            reprint(L_norm)
+            print(L_norm, end='\r')
     
         if (i==maxIter - 1) :                                           # If too many iterations
             print ("\nNot converged after %d iterations.\n" % (maxIter))
@@ -374,12 +367,19 @@ class TwoComp_passive(ThresholdModel) :
         
         
         # Define X matrix
-        #X       = np.zeros((T_l_selection, 2))
            
-        # Compute and fill columns associated with the somatic membrane filter k_s  
-        X_ks = self.k_s.convolution_ContinuousSignal_basisfunctions(tr. I, dt)            
-        X_ks = self.gamma.convolution_Spiketrain_basisfunctions(tr.getSpikeTimes() + self.Tref, tr.T, tr.dt)
-        X = np.concatenate( (X, X_gamma[selection,:]), axis=1 )
+        # Compute and fill columns associated with ...
+        # somatic membrane filter k_s (convolution with somatic current)
+        X_ks = self.k_s.convolution_ContinuousSignal_basisfunctions(tr.I, tr.dt)
+        
+        # dendritic current-to-soma filter (convolution with dendritic current)
+        X_eds = self.e_ds.convolution_ContinuousSignal_basisfunctions(tr.I_d, tr.dt)
+        
+        # spike triggered adaptive current
+        X_etaA = self.eta_A.convolution_Spiketrain_basisfunctions(tr.getSpikeTimes() + self.Tref, tr.T, tr.dt)
+        
+        # ... and concatenate them
+        X = np.concatenate( (X_ks[selection,:], X_eds[selection,:], X_etaA[selection,:]), axis=1 )
   
         # Precompute other quantities
         X_spikes = X[spks_i_afterselection,:]
@@ -398,44 +398,44 @@ class TwoComp_passive(ThresholdModel) :
     def plotParameters(self) :
         
         plt.figure(facecolor='white', figsize=(14,4))
-            
-        # Plot kappa
+        
+        # Plot eta_A
         plt.subplot(1,3,1)
         
-        K_support = np.linspace(0,150.0, 300)             
-        K = 1./self.C*np.exp(-K_support/(self.C/self.gl)) 
+        (eta_A_support, eta_A) = self.eta_A.getInterpolatedFilter(self.dt) 
+        
+        plt.plot(eta_A_support, eta_A, color='red', lw=2)
+        plt.plot([eta_A_support[0], eta_A_support[-1]], [0,0], ls=':', color='black', lw=2)
             
-        plt.plot(K_support, K, color='red', lw=2)
-        plt.plot([K_support[0], K_support[-1]], [0,0], ls=':', color='black', lw=2)
-            
-        plt.xlim([K_support[0], K_support[-1]])    
+        plt.xlim([eta_A_support[0], eta_A_support[-1]])    
         plt.xlabel("Time (ms)")
-        plt.ylabel("Membrane filter (MOhm/ms)")        
-        
-        # Plot eta
-        plt.subplot(1,3,2)
-        
-        (eta_support, eta) = self.eta.getInterpolatedFilter(self.dt) 
-        
-        plt.plot(eta_support, eta, color='red', lw=2)
-        plt.plot([eta_support[0], eta_support[-1]], [0,0], ls=':', color='black', lw=2)
-            
-        plt.xlim([eta_support[0], eta_support[-1]])    
-        plt.xlabel("Time (ms)")
-        plt.ylabel("Eta (nA)")
+        plt.ylabel("eta_A (nA)")
         
 
-        # Plot gamma
+        # Plot k_s
+        plt.subplot(1,3,2)
+        
+        (k_s_support, k_s) = self.k_s.getInterpolatedFilter(self.dt) 
+        
+        plt.plot(k_s_support, k_s, color='red', lw=2)
+        plt.plot([k_s_support[0], k_s_support[-1]], [0,0], ls=':', color='black', lw=2)
+            
+        plt.xlim([k_s_support[0], k_s_support[-1]])    
+        plt.xlabel("Time (ms)")
+        plt.ylabel("k_s (mV)")
+        plt.subplots_adjust(left=0.05, bottom=0.15, right=0.95, top=0.92, wspace=0.35, hspace=0.25)
+        
+        # Plot e_ds
         plt.subplot(1,3,3)
         
-        (gamma_support, gamma) = self.gamma.getInterpolatedFilter(self.dt) 
+        (e_ds_support, e_ds) = self.e_ds.getInterpolatedFilter(self.dt) 
         
-        plt.plot(gamma_support, gamma, color='red', lw=2)
-        plt.plot([gamma_support[0], gamma_support[-1]], [0,0], ls=':', color='black', lw=2)
+        plt.plot(e_ds_support, e_ds, color='red', lw=2)
+        plt.plot([e_ds_support[0], e_ds_support[-1]], [0,0], ls=':', color='black', lw=2)
             
-        plt.xlim([gamma_support[0], gamma_support[-1]])    
+        plt.xlim([e_ds_support[0], e_ds_support[-1]])    
         plt.xlabel("Time (ms)")
-        plt.ylabel("Gamma (mV)")
+        plt.ylabel("e_ds (mV)")
         plt.subplots_adjust(left=0.05, bottom=0.15, right=0.95, top=0.92, wspace=0.35, hspace=0.25)
 
         plt.show()
@@ -446,15 +446,15 @@ class TwoComp_passive(ThresholdModel) :
         print ("\n-------------------------")       
         print ("TwoComp_passive model parameters:")
         print ("-------------------------")
-        print ("tau_m (ms):\t%0.3f"  % (self.C/self.gl))
-        print ("R (MOhm):\t%0.3f"    % (1.0/self.gl))
-        print ("C (nF):\t\t%0.3f"    % (self.C))
-        print ("gl (nS):\t%0.3f"     % (self.gl))
-        print ("El (mV):\t%0.3f"     % (self.El))
         print ("Tref (ms):\t%0.3f"   % (self.Tref))
-        print ("Vr (mV):\t%0.3f"     % (self.Vr))  
-        print ("Vt* (mV):\t%0.3f"    % (self.Vt_star))
-        print ("DV (mV):\t%0.3f"     % (self.DV))    
+        print ("K_s, short time constant:\t%0.3f" %(self.k_s.getCoefficients()[0]))
+        print ("K_s, medium time constant:\t%0.3f" %(self.k_s.getCoefficients()[1]))
+        print ("K_s, long time constant:\t%0.3f" %(self.k_s.getCoefficients()[2]))
+        print ("E_ds, short time constant:\t%0.3f" %(self.e_ds.getCoefficients()[0]))
+        print ("E_ds, medium time constant:\t%0.3f" %(self.e_ds.getCoefficients()[1]))
+        print ("E_ds, long time constant:\t%0.3f" %(self.e_ds.getCoefficients()[2]))
+        print ("Eta_A, constant :\t%0.3f" %(self.eta_A.getCoefficients()[0]))
+        print ("Eta_A, power amplitude:\t%0.3f" %(self.eta_A.getCoefficients()[1]))
         print ("-------------------------\n")
                   
 

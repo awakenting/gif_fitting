@@ -121,7 +121,8 @@ class Filter_Powerlaw(Filter) :
         Tconst_i = self.p_Tconst/dt
         powerTime_i = self.p_powerTime/dt
         
-        windows = { 'win0': np.ones(Tconst_i),'win1':np.power(np.arange(Tconst_i,powerTime_i+Tconst_i)*dt,self.p_power)}
+        windows = { 'win0': np.ones(Tconst_i),\
+                    'win1':np.power(np.arange(Tconst_i,powerTime_i+Tconst_i)*dt,self.p_power)}
         shifts = {'shift0':0,'shift1':Tconst_i}
         
         # Fill matrix

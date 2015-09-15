@@ -11,21 +11,19 @@ class Filter_ThreeExpos(Filter) :
     """
     This class defines a function of time expanded using three exponential functions.
     
-    A filter f(t) is defined in the form f(t) = amp_one * exp(-t) + amp_two *exp(-t) + amp_three*exp(-t)
+    The filter f(t) is simply the sum of the three exponentials:
+    
+    f(t) = amp_one * exp(-t/tau_one) + amp_two *exp(-t/tau_two) + amp_three*exp(-t/tau_three)
                                                 
     where the parameters to be fitted are amp_(one,two,three).
     """
 
-    def __init__(self, length=5000.0, amp_one = -2, amp_two = 10, amp_three = -2) :
+    def __init__(self, length=5000.0, tau_one=10, tau_two=100, tau_three=500) :
         
         Filter.__init__(self)
         
         self.p_length     = length           # ms, filter length
-#        self.p_T_one      = T_one            # ms, length in time of the first exponential function
-#        self.p_T_two      = T_two            # ms, length in time of the second exponential function        
-#        self.p_amp_one    = amp_one          # nA, Amplitude of first exponential function
-#        self.p_amp_two    = amp_two          # nA, Amplitude of second exponential function
-#        self.p_amp_three  = amp_three        # nA, Amplitude of third exponential function
+        self.p_tau_dict   = {'tau0':tau_one, 'tau1':tau_two, 'tau2':tau_three} # the three time constants
         
         # Coefficients A_j that define the shape of the filter f(t)
         self.filter_coeff = np.zeros(3)   # values of bins
@@ -68,9 +66,9 @@ class Filter_ThreeExpos(Filter) :
         length_i = self.p_length/dt        
         
         # filter is the sum of the three exponentials
-        filter_interpol =     self.filter_coeff[0]*np.exp(np.arange(length_i)*dt)\
-                            + self.filter_coeff[1]*np.exp(np.arange(length_i)*dt)\
-                            + self.filter_coeff[2]*np.exp(np.arange(length_i)*dt)
+        filter_interpol =     self.filter_coeff[0]*np.exp(-np.arange(length_i)/self.p_tau_dict['tau'+str(0)]*dt)\
+                            + self.filter_coeff[1]*np.exp(-np.arange(length_i)/self.p_tau_dict['tau'+str(1)]*dt)\
+                            + self.filter_coeff[2]*np.exp(-np.arange(length_i)/self.p_tau_dict['tau'+str(2)]*dt)
 
 
         filter_interpol_support = np.arange(len(filter_interpol))*dt
@@ -101,7 +99,7 @@ class Filter_ThreeExpos(Filter) :
         for s in spks_i :
             # set all three exponentials
             for basis in np.arange(3):
-                tmp_X[s:(s+length_i),basis] += np.exp(np.arange(length_i)*dt)
+                tmp_X[s:(s+length_i),basis] += np.exp(-np.arange(length_i)*dt)
  
         
         X = tmp_X[:T_i,:]
@@ -123,8 +121,7 @@ class Filter_ThreeExpos(Filter) :
         
         # Fill matrix
         for basis in np.arange(3) :
-            
-            window = np.exp(np.arange(length_i))
+            window = np.exp(-np.arange(length_i)/self.p_tau_dict['tau'+str(basis)])
             window = np.array(window,dtype='float64')  
         
             F_star_I = fftconvolve(window, I_tmp, mode='full')*dt
@@ -142,7 +139,7 @@ class Filter_ThreeExpos(Filter) :
     # AUXILIARY METHODS USED BY THIS PARTICULAR IMPLEMENTATION OF FILTER
     ########################################################################################
 
-    def setMetaParameters(self, length=5000.0):
+    def setMetaParameters(self, length=5000.0, tau_one=1, tau_two=10, tau_three=50):
 
         """
         Set the parameters defining the rectangular basis functions.
@@ -150,7 +147,7 @@ class Filter_ThreeExpos(Filter) :
         """
         
         self.p_length     = length                  # ms, filter length
-
+        self.p_tau_dict   = {'tau0':tau_one, 'tau1':tau_two, 'tau2':tau_three} # the three time constants
         
         
         

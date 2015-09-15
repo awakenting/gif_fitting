@@ -58,10 +58,10 @@ class Experiment :
 
         return trace_tmp
         
-    def addTrainingSetTrace_TwoComp (self, V_s, V_s_units, I_s, I_s_units, V_d, V_d_units, I_d, I_d_units, T, FILETYPE='Igor'):
+    def addTrainingSetTrace_TwoComp (self, V, V_units, I, I_units, V_d, V_d_units, I_d, I_d_units, T, FILETYPE='Igor'):
         
         print ("Add Two Compartments Training Set trace ...")
-        trace_tmp = Trace( V, V_units, I, I_units, T, self.dt, FILETYPE=FILETYPE)
+        trace_tmp = Trace( V, V_units, I, I_units, T, self.dt, FILETYPE=FILETYPE, V_d = V_d, V_d_units = V_d_units, I_d = I_d, I_d_units = I_d_units)
         self.trainingset_traces.append( trace_tmp )
 
         return trace_tmp

@@ -590,7 +590,7 @@ class GIF_with_animation(ThresholdModel) :
             self.save_temp_figs(beta_history,experiment.trainingset_traces[0], force_spikes=True)
     
         if (i==maxIter - 1) :                                           # If too many iterations
-            print ("\nNot converged after %d iterations.\n" % (maxIter))
+            print("\nNot converged after %d iterations.\n" % (maxIter))
 
 
         return beta
