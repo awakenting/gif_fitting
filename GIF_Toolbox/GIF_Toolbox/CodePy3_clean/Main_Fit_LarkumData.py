@@ -89,38 +89,10 @@ myGIF.fit(myExp)
 
 # Plot the model parameters
 myGIF.printParameters()
-myGIF.plotParameters()   
+myGIF.plotParameters()
+
+(time, eta_a, spks, filtered_currents) = myGIF.simulate(testIs, testId)
 
 # Save the model
 #myGIF.save('./myGIF.pck')
-
-###############################################################################
-# Test hyperparameter of powerlaw filter:
-###############################################################################
-'''
-for pw in [-0.6,-0.7,-0.8,-0.9]:
-    myGIF.eta_A = Filter_Powerlaw()
-    myGIF.eta_A.setMetaParameters(length=1000.0, Tconst=5, power=pw, powerTime=2000)
-    
-    myGIF.k_s = Filter_Powerlaw()
-    myGIF.k_s.setMetaParameters(length=1000.0, Tconst=5, power=pw, powerTime=2000)
-    
-    powerlaw_coeffs = np.array([0.2,1])
-    myGIF.eta_A.setFilter_Coefficients(powerlaw_coeffs)
-    myGIF.k_s.setFilter_Coefficients(powerlaw_coeffs)
-    
-    # Perform the fit
-    myGIF_rect.fit(myExp, DT_beforeSpike=5.0)
-    
-    print ("\n################################")
-    print ("# Fit GIF_pow")
-    print ("################################\n")
-    
-    myGIF.fitVoltageReset(myExp, myGIF.Tref, do_plot=False)
-    
-    myGIF.fitSubthresholdDynamics(myExp, DT_beforeSpike=5.0)
-    
-    myGIF_rect.plotParameters()   
-    myGIF.plotParameters() 
-'''
 

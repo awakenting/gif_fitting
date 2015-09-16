@@ -66,13 +66,13 @@ class TwoComp_passive(ThresholdModel) :
         """
         self.setDt(dt)
     
-        (time, eta_A_sum, spks_times) = self.simulate(I, I_d, self.El)
+        (time, eta_A_sum, spks_times) = self.simulate(I, I_d)
         
         return spks_times
 
 
 
-    def simulate(self, I, I_d, V0):
+    def simulate(self, I, I_d):
  
         """
         Simulate the spiking response of the TwoComp_passive model to a 
@@ -100,9 +100,7 @@ class TwoComp_passive(ThresholdModel) :
         # Define arrays
         spks = np.array(np.zeros(p_T), dtype="double")                      
         eta_A_sum = np.array(np.zeros(p_T + 2*p_eta_A_l), dtype="double")
- 
-        # Set initial condition
-        V[0] = V0
+
         
         r = np.random.random_sample(p_T)
         
@@ -125,7 +123,7 @@ class TwoComp_passive(ThresholdModel) :
                 t = t + Tref_ind                
                 
                 ## UPDATE ADAPTATION PROCESS     
-                eta_A_sum[t+1 : t+1+p_eta_A_l] = eta_A_sum[t+1 : t+1+p_eta_A_l] + p_eta_A
+                eta_A_sum[t+1 : t+1+p_eta_A_l] +=  p_eta_A
         
         time = np.arange(p_T)*self.dt
         
@@ -133,7 +131,7 @@ class TwoComp_passive(ThresholdModel) :
      
         spks = (np.where(spks==1)[0])*self.dt
     
-        return (time, eta_A_sum, spks)
+        return (time, eta_A_sum, spks, filtered_currents)
         
         
         
