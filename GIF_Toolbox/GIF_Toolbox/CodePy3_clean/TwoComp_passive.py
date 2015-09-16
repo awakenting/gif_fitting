@@ -57,7 +57,7 @@ class TwoComp_passive(ThresholdModel) :
     ########################################################################################################
     # FUNCTIONS FOR SIMULATIONS
     ########################################################################################################
-    def simulateSpikingResponse(self, I, dt):
+    def simulateSpikingResponse(self, I, I_d, dt):
         
         """
         Simulate the spiking response of the TwoComp_passive model to an input current I (nA) with time step dt.
@@ -66,30 +66,21 @@ class TwoComp_passive(ThresholdModel) :
         """
         self.setDt(dt)
     
-        (time, V, eta_sum, V_T, spks_times) = self.simulate(I, self.El)
+        (time, eta_A_sum, spks_times) = self.simulate(I, I_d, self.El)
         
         return spks_times
 
 
-    def simulateVoltageResponse(self, I, dt) :
 
-        self.setDt(dt)
-    
-        (time, V, eta_sum, V_T, spks_times) = self.simulate(I, self.El)
-        
-        return (spks_times, V, V_T)
-
-
-    def simulate(self, I, V0):
+    def simulate(self, I, I_d, V0):
  
         """
-        Simulate the spiking response of the TwoComp_passive model to an input current I (nA) with time step dt.
-        V0 indicate the initial condition V(0)=V0.
+        Simulate the spiking response of the TwoComp_passive model to a 
+        somatic input current I (nA) and a dendritic input current I_d 
+        with time step dt. V0 indicate the initial condition V(0)=V0.
         The function returns:
-        - time     : ms, support for V, eta_sum, V_T, spks
-        - V        : mV, membrane potential
-        - eta_sum  : nA, adaptation current
-        - V_T      : mV, firing threshold
+        - time     : ms, support for spks
+        - eta_A    : nA, spike triggered adaptive current
         - spks     : ms, list of spike times 
         """
  
@@ -98,107 +89,52 @@ class TwoComp_passive(ThresholdModel) :
         p_dt        = self.dt
         
         # Model parameters
-        p_gl        = self.gl
-        p_C         = self.C 
-        p_El        = self.El
-        p_Vr        = self.Vr
-        p_Tref      = self.Tref
-        p_Vt_star   = self.Vt_star
-        p_DV        = self.DV
+        Tref_ind = int(self.Tref/p_dt)
         p_lambda0   = self.lambda0
         
         # Model kernels   
-        (p_eta_support, p_eta) = self.eta.getInterpolatedFilter(self.dt)   
-        p_eta       = p_eta.astype('double')
-        p_eta_l     = len(p_eta)
-
-        (p_gamma_support, p_gamma) = self.gamma.getInterpolatedFilter(self.dt)   
-        p_gamma     = p_gamma.astype('double')
-        p_gamma_l   = len(p_gamma)
+        (p_eta_A_support, p_eta_A) = self.eta_A.getInterpolatedFilter(self.dt)   
+        p_eta_A       = p_eta_A.astype('double')
+        p_eta_A_l     = len(p_eta_A)
       
         # Define arrays
-        V = np.array(np.zeros(p_T), dtype="double")
-        I = np.array(I, dtype="double")
         spks = np.array(np.zeros(p_T), dtype="double")                      
-        eta_sum = np.array(np.zeros(p_T + 2*p_eta_l), dtype="double")
-        gamma_sum = np.array(np.zeros(p_T + 2*p_gamma_l), dtype="double")            
+        eta_A_sum = np.array(np.zeros(p_T + 2*p_eta_A_l), dtype="double")
  
         # Set initial condition
         V[0] = V0
         
-        # computationally intensive part is calculated by cython function
-        V, eta_sum, gamma_sum, spks = cyth.c_simulate(p_T, p_dt, p_gl, p_C, p_El, p_Vr, p_Tref, p_Vt_star,
-                                                      p_DV, p_lambda0, V, I, p_eta, p_eta_l, eta_sum, p_gamma,
-                                                      gamma_sum, p_gamma_l, spks)
+        r = np.random.random_sample(p_T)
+        
+        # compute convolutions with model kernels
+        filtered_I = self.k_s.convolution_ContinuousSignal(I, self.dt)
+        filtered_I_d = self.e_ds.convolution_ContinuousSignal(I_d, self.dt)
+        
+        filtered_currents = filtered_I + filtered_I_d
+                
+        for t in np.arange(p_T-1):
+            
+            temp_lambda = p_lambda0* np.exp(filtered_currents[t] + eta_A_sum[t])
+            p_dontspike = np.exp(-temp_lambda*(p_dt/1000.0)) 
+            
+            if (r[t] > p_dontspike):
+                                
+                if (t+1 < p_T-1):
+                    spks[t+1] = 1.0
+                
+                t = t + Tref_ind                
+                
+                ## UPDATE ADAPTATION PROCESS     
+                eta_A_sum[t+1 : t+1+p_eta_A_l] = eta_A_sum[t+1 : t+1+p_eta_A_l] + p_eta_A
         
         time = np.arange(p_T)*self.dt
         
-        eta_sum   = eta_sum[:p_T]     
-        V_T = gamma_sum[:p_T] + p_Vt_star
+        eta_A_sum   = eta_A_sum[:p_T]     
      
         spks = (np.where(spks==1)[0])*self.dt
     
-        return (time, V, eta_sum, V_T, spks)
+        return (time, eta_A_sum, spks)
         
-        
-    def simulateDeterministic_forceSpikes(self, I, V0, spks):
-        
-        """
-        Simulate the subthresohld response of the TwoComp_passive model to an input current I (nA) with time step dt.
-        Adaptation currents are enforced at times specified in the list spks (in ms) given as an argument to the function.
-        V0 indicate the initial condition V(0)=V0.
-        The function returns:
-        - time     : ms, support for V, eta_sum, V_T, spks
-        - V        : mV, membrane potential
-        - eta_sum  : nA, adaptation current
-        """
- 
-        # Input parameters
-        p_T          = len(I)
-        p_dt         = self.dt
-          
-          
-        # Model parameters
-        p_gl        = self.gl
-        p_C         = self.C 
-        p_El        = self.El
-        p_Vr        = self.Vr
-        p_Tref      = self.Tref
-        p_Tref_i    = int(self.Tref/self.dt)
-    
-    
-        # Model kernel      
-        (p_eta_support, p_eta) = self.eta.getInterpolatedFilter(self.dt)   
-        p_eta       = p_eta.astype('double')
-        p_eta_l     = len(p_eta)
-
-
-        # Define arrays
-        V        = np.array(np.zeros(p_T), dtype="double")
-        I        = np.array(I, dtype="double")
-        spks     = np.array(spks, dtype="double")                      
-        spks_i   = Tools.timeToIndex(spks, self.dt)
-
-
-        # Compute adaptation current (sum of eta triggered at spike times in spks) 
-        eta_sum  = np.array(np.zeros(p_T + 1.1*p_eta_l + p_Tref_i), dtype="double")   
-        
-        for s in spks_i :
-            eta_sum[s+1+p_Tref_i : s+1+p_Tref_i+p_eta_l] += p_eta
-        
-        eta_sum  = eta_sum[:p_T]  
-   
-   
-        # Set initial condition
-        V[0] = V0
-        
-        # computational intensive part is calculated by cython function
-        V, eta_sum = cyth.c_simulateDeterministic_forceSpikes(p_T, p_dt, p_gl, p_C, p_El, p_Vr, p_Tref, V, I, eta_sum, spks_i)
-        
-        time = np.arange(p_T)*self.dt
-        eta_sum = eta_sum[:p_T]     
-
-        return (time, V, eta_sum)
         
         
     def fit(self, experiment):
