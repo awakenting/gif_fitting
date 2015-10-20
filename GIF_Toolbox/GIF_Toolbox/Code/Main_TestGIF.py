@@ -92,9 +92,12 @@ myExp.plotTrainingSet()
 # Perform the fit
 myGIF.fit(myExp, DT_beforeSpike=5.0)
 
+tr = myExp.trainingset_traces[0]
+spks = myGIF.simulateSpikingResponse(tr.I, myGIF.dt)
+
 # Plot the model parameters
-myGIF.printParameters()
-myGIF.plotParameters()   
+#myGIF.printParameters()
+#myGIF.plotParameters()   
 
 # Save the model
 myGIF.save('./myGIF.pck')
@@ -133,13 +136,13 @@ plt.show()
 ############################################################################################################
 
 # Use the myGIF model to predict the spiking data of the test data set in myExp
-myPrediction = myExp.predictSpikes(myGIF, nb_rep=500)
+#myPrediction = myExp.predictSpikes(myGIF, nb_rep=500)
 
 # Compute Md* with a temporal precision of +/- 4ms
-Md = myPrediction.computeMD_Kistler(4.0, 0.1)    
+#Md = myPrediction.computeMD_Kistler(4.0, 0.1)    
 
 # Plot data vs model prediction
-myPrediction.plotRaster(delta=1000.0) 
+#myPrediction.plotRaster(delta=1000.0) 
 
 
 
