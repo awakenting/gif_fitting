@@ -230,8 +230,8 @@ class GIF_py3(ThresholdModel_py3) :
         v = weave.inline(code, vars)
         '''
         
-        
-        for t in np.arange(p_T-1):
+        t = 0
+        while t < (p_T-1):
             
             ## INTEGRATE VOLTAGE
             V[t+1] = V[t] + p_dt/p_C*(-p_gl*(V[t] - p_El) + I[t] - eta_sum[t] )
@@ -260,6 +260,8 @@ class GIF_py3(ThresholdModel_py3) :
                 
                 for j in np.arange(p_gamma_l):
                     gamma_sum[t+1+j] += p_gamma[j]
+            
+            t += 1
                 
         
         
