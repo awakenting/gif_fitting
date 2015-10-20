@@ -3,6 +3,7 @@ import pickle as pkl
 
 from SpikeTrainComparator import *
 from SpikingModel import *
+from TwoComp_passive import *
 from Trace import *
 
 
@@ -74,6 +75,14 @@ class Experiment :
         self.testset_traces.append( trace_tmp )
 
         return trace_tmp
+        
+    def addTestSetTrace_TwoComp (self, V, V_units, I, I_units, V_d, V_d_units, I_d, I_d_units, T, FILETYPE='Igor'):
+        
+        print ("Add Two Compartments Test Set trace ...")
+        trace_tmp = Trace( V, V_units, I, I_units, T, self.dt, FILETYPE=FILETYPE, V_d = V_d, V_d_units = V_d_units, I_d = I_d, I_d_units = I_d_units)
+        self.testset_traces.append( trace_tmp )
+
+        return trace_tmp
     
     
 
@@ -142,13 +151,20 @@ class Experiment :
         T_test = self.testset_traces[0].T
         I_test = self.testset_traces[0].I
         
+        if isinstance(spiking_model, TwoComp_passive):
+            I_d_test = self.testset_traces[0].I_d
+        
         all_spks_times_prediction = []
         
         print ("Predict spike times...")
         
         for rep in np.arange(nb_rep) :
-            print( "Progress: %2.1f %% \r" % (100*(rep+1)/nb_rep)),
-            spks_times = spiking_model.simulateSpikingResponse(I_test, self.dt)
+            print( "Progress: %2.1f %% \r" % (100*(rep+1)/nb_rep), end='\r'),
+            if isinstance(spiking_model, TwoComp_passive):
+                spks_times = spiking_model.simulateSpikingResponse(I_test, I_d_test, self.dt)
+            else:
+                spks_times = spiking_model.simulateSpikingResponse(I_test, self.dt)
+                
             all_spks_times_prediction.append(spks_times)
         
         #print

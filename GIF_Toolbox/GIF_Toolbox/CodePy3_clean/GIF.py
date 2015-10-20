@@ -211,7 +211,7 @@ class GIF(ThresholdModel) :
         # Define arrays
         V        = np.array(np.zeros(p_T), dtype="double")
         I        = np.array(I, dtype="double")
-        spks     = np.array(spks, dtype="double")                      
+        spks     = np.array(spks, dtype="double")
         spks_i   = Tools.timeToIndex(spks, self.dt)
 
 
@@ -570,7 +570,7 @@ class GIF(ThresholdModel) :
             # Compute normalized likelihood (for print)
             # The likelihood is normalized with respect to a poisson process and units are in bit/spks
             L_norm = (L-logL_poisson)/np.log(2)/N_spikes_tot
-            reprint(L_norm)
+            print(L_norm, end='\r')
     
         if (i==maxIter - 1) :                                           # If too many iterations
             print ("\nNot converged after %d iterations.\n" % (maxIter))

@@ -98,6 +98,9 @@ myGIF_pow.printParameters()
 myGIF_rect.plotParameters()   
 myGIF_pow.plotParameters()   
 
+(time, V, eta_sum, V_T, spks) = myGIF_pow.simulate(testIs, testVs[0])
+
+(time, V, eta_sum, V_T, spks) = myGIF_rect.simulate(testIs, testVs[0])
 # Save the model
 #myGIF.save('./myGIF.pck')
 

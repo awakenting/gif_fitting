@@ -38,7 +38,7 @@ myExp.addTestSetTrace(PATH + 'Cell3_Ger1Test_ch2_1016.ibw', 1.0, PATH + 'Cell3_G
 myExp.addTestSetTrace(PATH + 'Cell3_Ger1Test_ch2_1017.ibw', 1.0, PATH + 'Cell3_Ger1Test_ch3_1017.ibw', 1.0, 20000.0, FILETYPE='Igor')
 
 # Plot data
-#myExp.plotTrainingSet()
+myExp.plotTrainingSet()
 #myExp.plotTestSet()
 
 
@@ -47,24 +47,24 @@ myExp.addTestSetTrace(PATH + 'Cell3_Ger1Test_ch2_1017.ibw', 1.0, PATH + 'Cell3_G
 ############################################################################################################
 
 # Create new object to perform AEC
-#myAEC = AEC_Badel(myExp.dt)
-#
-## Define metaparametres
-#myAEC.K_opt.setMetaParameters(length=150.0, binsize_lb=myExp.dt, binsize_ub=2.0, slope=30.0, clamp_period=1.0)
-#myAEC.p_expFitRange = [3.0,150.0]  
-#myAEC.p_nbRep = 15     
-#
-## Assign myAEC to myExp and compensate the voltage recordings
-#myExp.setAEC(myAEC)  
-#myExp.performAEC()  
-#
-## Plot AEC filters (Kopt and Ke)
-#myAEC.plotKopt()
-#myAEC.plotKe()
-#
-## Plot training and test set
-#myExp.plotTrainingSet()
-#myExp.plotTestSet()
+myAEC = AEC_Badel(myExp.dt)
+
+# Define metaparametres
+myAEC.K_opt.setMetaParameters(length=150.0, binsize_lb=myExp.dt, binsize_ub=2.0, slope=30.0, clamp_period=1.0)
+myAEC.p_expFitRange = [3.0,150.0]  
+myAEC.p_nbRep = 15     
+
+# Assign myAEC to myExp and compensate the voltage recordings
+myExp.setAEC(myAEC)  
+myExp.performAEC()  
+
+# Plot AEC filters (Kopt and Ke)
+myAEC.plotKopt()
+myAEC.plotKe()
+
+# Plot training and test set
+myExp.plotTrainingSet()
+myExp.plotTestSet()
 
 
 ############################################################################################################
@@ -95,6 +95,11 @@ myExp.detectSpikes_cython()
 # Perform the fit
 #myGIF.fit(myExp, DT_beforeSpike=5.0)
 myGIF.fit(myExp, DT_beforeSpike=5.0)
+
+tr = myExp.trainingset_traces[0]
+spks = myGIF.simulateSpikingResponse(tr.I, myGIF.dt)
+plt.figure()
+plt.plot(spks[0:100])
 
 # to test the speed up with cython in ipython:
 '''

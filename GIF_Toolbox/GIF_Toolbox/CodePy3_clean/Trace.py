@@ -62,12 +62,12 @@ class Trace :
             I           = ReadIBW.read(I)
             self.I     = np.array(I[:int(T/self.dt)])*I_units/10**-9             # convert input current trace to nA
             
-            
-            V_d_rec       = ReadIBW.read(V_d)
-            self.V_d_rec  = np.array(V_d_rec[:int(T/self.dt)])*V_d_units/10**-3        # convert voltage trace to mV
-                        
-            I_d           = ReadIBW.read(I_d)
-            self.I     = np.array(I_d[:int(T/self.dt)])*I_d_units/10**-9             # convert input current trace to nA
+            if not type(V_d) == int:
+                V_d_rec       = ReadIBW.read(V_d)
+                self.V_d_rec  = np.array(V_d_rec[:int(T/self.dt)])*V_d_units/10**-3        # convert voltage trace to mV
+                            
+                I_d           = ReadIBW.read(I_d)
+                self.I     = np.array(I_d[:int(T/self.dt)])*I_d_units/10**-9             # convert input current trace to nA
 
 
         # LOAD EXPERIMENTAL DATA FROM VECTOR (V AND I SHOULD COTAIN ARRAYS OR LISTS)
@@ -77,18 +77,20 @@ class Trace :
             self.V_rec = np.array(V[:int(T/self.dt)])*V_units/10**-3        # set mV
             self.I     = np.array(I[:int(T/self.dt)])*I_units/10**-9        # set nA
             
-            # set dendritic voltage and current
-            self.V_d_rec = np.array(V_d[:int(T/self.dt)])*V_d_units/10**-3        # set mV
-            self.I_d     = np.array(I_d[:int(T/self.dt)])*I_d_units/10**-9        # set nA
+            if not type(V_d) == int:
+                # set dendritic voltage and current
+                self.V_d_rec = np.array(V_d[:int(T/self.dt)])*V_d_units/10**-3        # set mV
+                self.I_d     = np.array(I_d[:int(T/self.dt)])*I_d_units/10**-9        # set nA
 
 
         self.V_rec = np.array(self.V_rec,dtype="double")
         self.I     = np.array(self.I,dtype="double")
         self.V     = self.V_rec
         
-        self.V_d_rec = np.array(self.V_d_rec,dtype="double")
-        self.I_d     = np.array(self.I_d,dtype="double")
-        self.V_d     = self.V_d_rec
+        if not type(V_d) == int:
+            self.V_d_rec = np.array(self.V_d_rec,dtype="double")
+            self.I_d     = np.array(self.I_d,dtype="double")
+            self.V_d     = self.V_d_rec
         
         self.ROI   = [ [0, len(self.V_rec)*self.dt] ]                       # by default everything is ROI
     

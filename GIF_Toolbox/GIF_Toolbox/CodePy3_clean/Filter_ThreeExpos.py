@@ -66,9 +66,9 @@ class Filter_ThreeExpos(Filter) :
         length_i = self.p_length/dt        
         
         # filter is the sum of the three exponentials
-        filter_interpol =     self.filter_coeff[0]*np.exp(-np.arange(length_i)/self.p_tau_dict['tau'+str(0)]*dt)\
-                            + self.filter_coeff[1]*np.exp(-np.arange(length_i)/self.p_tau_dict['tau'+str(1)]*dt)\
-                            + self.filter_coeff[2]*np.exp(-np.arange(length_i)/self.p_tau_dict['tau'+str(2)]*dt)
+        filter_interpol =     self.filter_coeff[0]*np.exp(-np.arange(length_i)/self.p_tau_dict['tau'+str(0)])\
+                            + self.filter_coeff[1]*np.exp(-np.arange(length_i)/self.p_tau_dict['tau'+str(1)])\
+                            + self.filter_coeff[2]*np.exp(-np.arange(length_i)/self.p_tau_dict['tau'+str(2)])
 
 
         filter_interpol_support = np.arange(len(filter_interpol))*dt
@@ -80,6 +80,10 @@ class Filter_ThreeExpos(Filter) :
     def getLength(self):
         
         return self.p_length
+        
+    def getTimeConstants(self):
+        
+        return self.p_tau_dict
 
         
     #############################################################################

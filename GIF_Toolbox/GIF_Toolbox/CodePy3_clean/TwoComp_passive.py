@@ -77,20 +77,20 @@ class TwoComp_passive(ThresholdModel) :
         """
         Simulate the spiking response of the TwoComp_passive model to a 
         somatic input current I (nA) and a dendritic input current I_d 
-        with time step dt. V0 indicate the initial condition V(0)=V0.
+        with time step dt.
         The function returns:
         - time     : ms, support for spks
         - eta_A    : nA, spike triggered adaptive current
         - spks     : ms, list of spike times 
         """
- 
+        
         # Input parameters
         p_T         = len(I)
         p_dt        = self.dt
         
         # Model parameters
-        Tref_ind = int(self.Tref/p_dt)
-        p_lambda0   = self.lambda0
+        p_Tref_ind = int(self.Tref/p_dt)
+        p_lambda0   = np.double(self.lambda0)
         
         # Model kernels   
         (p_eta_A_support, p_eta_A) = self.eta_A.getInterpolatedFilter(self.dt)   
@@ -101,37 +101,85 @@ class TwoComp_passive(ThresholdModel) :
         spks = np.array(np.zeros(p_T), dtype="double")                      
         eta_A_sum = np.array(np.zeros(p_T + 2*p_eta_A_l), dtype="double")
 
-        
-        r = np.random.random_sample(p_T)
-        
         # compute convolutions with model kernels
         filtered_I = self.k_s.convolution_ContinuousSignal(I, self.dt)
         filtered_I_d = self.e_ds.convolution_ContinuousSignal(I_d, self.dt)
         
         filtered_currents = filtered_I + filtered_I_d
-                
-        for t in np.arange(p_T-1):
+        
+        
+        eta_A_sum, spks = cyth.c_simulate_twoComp(p_T, p_dt, p_Tref_ind, p_lambda0, p_eta_A_l, p_eta_A, eta_A_sum, filtered_currents, spks)
+        
+        # this is a pure python implementation for debugging the code        
+        '''
+        r = np.random.random_sample(p_T)
+        temp_lambda = np.zeros(p_T)
+        p_dontspike = np.zeros(p_T)
+        
+        t = 0
+        while t < (p_T-1):
+            temp_lambda[t] = p_lambda0 * np.exp(filtered_currents[t] + eta_A_sum[t])
+            p_dontspike[t] = np.exp(-temp_lambda[t]*(p_dt/1000.0)) 
             
-            temp_lambda = p_lambda0* np.exp(filtered_currents[t] + eta_A_sum[t])
-            p_dontspike = np.exp(-temp_lambda*(p_dt/1000.0)) 
-            
-            if (r[t] > p_dontspike):
+            if (r[t] > p_dontspike[t]):
                                 
                 if (t+1 < p_T-1):
                     spks[t+1] = 1.0
                 
-                t = t + Tref_ind                
+                t = t + p_Tref_ind                
                 
                 ## UPDATE ADAPTATION PROCESS     
                 eta_A_sum[t+1 : t+1+p_eta_A_l] +=  p_eta_A
+            
+            t += 1
+        '''
         
         time = np.arange(p_T)*self.dt
         
         eta_A_sum   = eta_A_sum[:p_T]     
      
         spks = (np.where(spks==1)[0])*self.dt
-    
-        return (time, eta_A_sum, spks, filtered_currents)
+        
+        
+        return (time, eta_A_sum, spks)
+        
+    def simulate_deterministicSpikes(self, I, I_d, spks):
+        
+        
+        # Input parameters
+        p_T         = len(I)
+        p_dt        = self.dt
+        
+        # Model parameters
+        p_Tref_ind = int(self.Tref/p_dt)
+        p_lambda0   = np.double(self.lambda0)
+        
+        # Model kernels   
+        (p_eta_A_support, p_eta_A) = self.eta_A.getInterpolatedFilter(self.dt)   
+        p_eta_A       = p_eta_A.astype('double')
+        p_eta_A_l     = len(p_eta_A)
+      
+        # Define arrays
+        eta_A_sum = np.array(np.zeros(p_T + 2*p_eta_A_l), dtype="double")
+        
+        spks     = np.array(spks, dtype="double")
+        spks_i   = Tools.timeToIndex(spks, self.dt)
+        for s in spks_i :
+            eta_A_sum[s + 1 + p_Tref_ind  : s + 1 + p_Tref_ind + p_eta_A_l] += p_eta_A
+        
+        eta_A_sum  = eta_A_sum[:p_T]
+
+        # compute convolutions with model kernels
+        filtered_I = self.k_s.convolution_ContinuousSignal(I, self.dt)
+        filtered_I_d = self.e_ds.convolution_ContinuousSignal(I_d, self.dt)
+        
+        filtered_currents = filtered_I + filtered_I_d
+        
+        V = filtered_currents + eta_A_sum
+            
+        time = np.arange(p_T)*self.dt
+            
+        return (time, eta_A_sum, spks, V, filtered_I, filtered_I_d)
         
         
         
@@ -140,7 +188,6 @@ class TwoComp_passive(ThresholdModel) :
         """
         Fit the TwoComp_passive model on experimental data.
         The experimental data are stored in the object experiment.
-        The parameter DT_beforeSpike (in ms) defines the region that is cut before each spike when fitting the subthreshold dynamics of the membrane potential.
         Only training set traces in experiment are used to perform the fit.
         """
         
@@ -341,7 +388,8 @@ class TwoComp_passive(ThresholdModel) :
         plt.plot(eta_A_support, eta_A, color='red', lw=2)
         plt.plot([eta_A_support[0], eta_A_support[-1]], [0,0], ls=':', color='black', lw=2)
             
-        plt.xlim([eta_A_support[0], eta_A_support[-1]])    
+        plt.xlim([eta_A_support[0] - np.size(eta_A)*0.01, eta_A_support[-1] + np.size(eta_A)*0.01])
+        plt.ylim([np.min(eta_A), np.max(eta_A)])
         plt.xlabel("Time (ms)")
         plt.ylabel("eta_A (nA)")
         
@@ -354,7 +402,8 @@ class TwoComp_passive(ThresholdModel) :
         plt.plot(k_s_support, k_s, color='red', lw=2)
         plt.plot([k_s_support[0], k_s_support[-1]], [0,0], ls=':', color='black', lw=2)
             
-        plt.xlim([k_s_support[0], k_s_support[-1]])    
+        plt.xlim([k_s_support[0] - np.size(k_s)*0.01, k_s_support[-1] + np.size(k_s)*0.01])
+        plt.ylim([np.min(k_s)*1.1, np.max(k_s)*1.1])
         plt.xlabel("Time (ms)")
         plt.ylabel("k_s (mV)")
         plt.subplots_adjust(left=0.05, bottom=0.15, right=0.95, top=0.92, wspace=0.35, hspace=0.25)
@@ -367,7 +416,8 @@ class TwoComp_passive(ThresholdModel) :
         plt.plot(e_ds_support, e_ds, color='red', lw=2)
         plt.plot([e_ds_support[0], e_ds_support[-1]], [0,0], ls=':', color='black', lw=2)
             
-        plt.xlim([e_ds_support[0], e_ds_support[-1]])    
+        plt.xlim([e_ds_support[0] - np.size(e_ds)*0.01, e_ds_support[-1] + np.size(e_ds)*0.01])
+        plt.ylim([np.min(e_ds)*1.1, np.max(e_ds)*1.1])
         plt.xlabel("Time (ms)")
         plt.ylabel("e_ds (mV)")
         plt.subplots_adjust(left=0.05, bottom=0.15, right=0.95, top=0.92, wspace=0.35, hspace=0.25)
@@ -381,12 +431,12 @@ class TwoComp_passive(ThresholdModel) :
         print ("TwoComp_passive model parameters:")
         print ("-------------------------")
         print ("Tref (ms):\t%0.3f"   % (self.Tref))
-        print ("K_s, short time constant:\t%0.3f" %(self.k_s.getCoefficients()[0]))
-        print ("K_s, medium time constant:\t%0.3f" %(self.k_s.getCoefficients()[1]))
-        print ("K_s, long time constant:\t%0.3f" %(self.k_s.getCoefficients()[2]))
-        print ("E_ds, short time constant:\t%0.3f" %(self.e_ds.getCoefficients()[0]))
-        print ("E_ds, medium time constant:\t%0.3f" %(self.e_ds.getCoefficients()[1]))
-        print ("E_ds, long time constant:\t%0.3f" %(self.e_ds.getCoefficients()[2]))
+        print ("K_s, Amplitude of short time constant("+str(self.k_s.getTimeConstants()['tau0'])+" ms):\t%0.3f" %(self.k_s.getCoefficients()[0]))
+        print ("K_s, Amplitude of medium time constant("+str(self.k_s.getTimeConstants()['tau1'])+" ms):\t%0.3f" %(self.k_s.getCoefficients()[1]))
+        print ("K_s, Amplitude of long time constant("+str(self.k_s.getTimeConstants()['tau2'])+" ms):\t%0.3f" %(self.k_s.getCoefficients()[2]))
+        print ("E_ds, Amplitude of short time constant("+str(self.e_ds.getTimeConstants()['tau0'])+" ms):\t%0.3f" %(self.e_ds.getCoefficients()[0]))
+        print ("E_ds, Amplitude of medium time constant("+str(self.e_ds.getTimeConstants()['tau1'])+" ms):\t%0.3f" %(self.e_ds.getCoefficients()[1]))
+        print ("E_ds, Amplitude of long time constant("+str(self.e_ds.getTimeConstants()['tau2'])+" ms):\t%0.3f" %(self.e_ds.getCoefficients()[2]))
         print ("Eta_A, constant :\t%0.3f" %(self.eta_A.getCoefficients()[0]))
         print ("Eta_A, power amplitude:\t%0.3f" %(self.eta_A.getCoefficients()[1]))
         print ("-------------------------\n")
