@@ -141,7 +141,7 @@ class TwoComp_passive(ThresholdModel) :
         spks = (np.where(spks==1)[0])*self.dt
         
         
-        return (time, eta_A_sum, spks)
+        return (time, eta_A_sum, spks, filtered_currents)
         
     def simulate_deterministicSpikes(self, I, I_d, spks):
         
@@ -420,6 +420,56 @@ class TwoComp_passive(ThresholdModel) :
         plt.ylim([np.min(e_ds)*1.1, np.max(e_ds)*1.1])
         plt.xlabel("Time (ms)")
         plt.ylabel("e_ds (mV)")
+        plt.subplots_adjust(left=0.05, bottom=0.15, right=0.95, top=0.92, wspace=0.35, hspace=0.25)
+
+        plt.show()
+        
+    def plotParametersWithBasisfunctions(self) :
+        
+        plt.figure(facecolor='white', figsize=(14,4))
+        
+        # Plot eta_A
+        plt.subplot(1,3,1)
+        
+        (eta_A_support, eta_A) = self.eta_A.getInterpolatedFilter(self.dt) 
+        
+        plt.plot(eta_A_support, eta_A, color='red', lw=2)
+        plt.plot([eta_A_support[0], eta_A_support[-1]], [0,0], ls=':', color='black', lw=2)
+            
+        plt.xlim([eta_A_support[0] - np.size(eta_A)*0.01, eta_A_support[-1] + np.size(eta_A)*0.01])
+        plt.ylim([np.min(eta_A), np.max(eta_A)])
+        plt.xlabel("Time (ms)")
+        plt.ylabel("eta_A (nA)")
+        
+
+        # Plot k_s
+        plt.subplot(1,3,2)
+        
+        (k_s_support, k_s) = self.k_s.getInterpolatedBasisfunctions(self.dt) 
+        
+        for basis in k_s:
+            plt.plot(k_s_support, basis, lw=2)
+        plt.plot([k_s_support[0], k_s_support[-1]], [0,0], ls=':', color='black', lw=2)
+            
+        plt.xlim([k_s_support[0] - np.size(k_s)*0.01, k_s_support[-1] + np.size(k_s)*0.01])
+        plt.ylim([np.min(k_s)*1.1, np.max(k_s)*1.1])
+        plt.xlabel("Time (ms)")
+        plt.ylabel("Basis of k_s (mV)")
+        plt.subplots_adjust(left=0.05, bottom=0.15, right=0.95, top=0.92, wspace=0.35, hspace=0.25)
+        
+        # Plot e_ds
+        plt.subplot(1,3,3)
+        
+        (e_ds_support, e_ds) = self.e_ds.getInterpolatedBasisfunctions(self.dt) 
+        
+        for basis in e_ds:
+            plt.plot(e_ds_support, basis, lw=1.5)
+        plt.plot([e_ds_support[0], e_ds_support[-1]], [0,0], ls=':', color='black', lw=2)
+            
+        plt.xlim([e_ds_support[0] - np.size(e_ds)*0.01, e_ds_support[-1] + np.size(e_ds)*0.01])
+        plt.ylim([np.min(e_ds)*1.1, np.max(e_ds)*1.1])
+        plt.xlabel("Time (ms)")
+        plt.ylabel("Basis of e_ds (mV)")
         plt.subplots_adjust(left=0.05, bottom=0.15, right=0.95, top=0.92, wspace=0.35, hspace=0.25)
 
         plt.show()
