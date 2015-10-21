@@ -71,7 +71,7 @@ class Filter_Powerlaw(Filter) :
         # set initial constant part to A_1
         filter_interpol[0:Tconst_i] = self.filter_coeff[0]
         # set powerlaw part to A_2
-        filter_interpol[Tconst_i:length_i] = self.filter_coeff[1]*np.power(np.arange(Tconst_i,length_i)*dt,self.p_power)
+        filter_interpol[Tconst_i:length_i] = self.filter_coeff[1]*np.power(np.arange(Tconst_i,length_i),self.p_power)
 
         filter_interpol_support = np.arange(len(filter_interpol))*dt
 
@@ -98,11 +98,11 @@ class Filter_Powerlaw(Filter) :
          
         X = np.zeros( (T_i, 2) )
         tmp_const = np.zeros( T_i + Tconst_i )
-        tmp_pow = np.zeros( T_i + powerTime_i )
+        tmp_pow = np.zeros( T_i + 2*powerTime_i )
         # Fill matrix            
         for s in spks_i :
             tmp_const[s:(s+Tconst_i)] += 1
-            tmp_pow[(s + Tconst_i):(s + Tconst_i + powerTime_i)] += np.power(np.arange(Tconst_i,powerTime_i+Tconst_i)*dt,self.p_power)
+            tmp_pow[(s + Tconst_i):(s + Tconst_i + powerTime_i)] += np.power(np.arange(Tconst_i,powerTime_i+Tconst_i),self.p_power)
         
         X[:,0] = tmp_const[:T_i]
         X[:,1] = tmp_pow[:T_i]
@@ -122,7 +122,7 @@ class Filter_Powerlaw(Filter) :
         powerTime_i = self.p_powerTime/dt
         
         windows = { 'win0': np.ones(Tconst_i),\
-                    'win1':np.power(np.arange(Tconst_i,powerTime_i+Tconst_i)*dt,self.p_power)}
+                    'win1':np.power(np.arange(Tconst_i,powerTime_i+Tconst_i),self.p_power)}
         shifts = {'shift0':0,'shift1':Tconst_i}
         
         # Fill matrix
