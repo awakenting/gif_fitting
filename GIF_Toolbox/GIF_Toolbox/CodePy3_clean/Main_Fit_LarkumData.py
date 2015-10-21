@@ -23,7 +23,9 @@ mpl.rcParams['axes.facecolor'] = 'white'
 ############################################################################################################
 # STEP 1: LOAD EXPERIMENTAL DATA
 ############################################################################################################
-datasetIndex = 2
+myExp = Experiment('Experiment 1',0.1)
+
+datasetIndex = 5
 
 trainData = io.loadmat('/home/andrej/Documents/Code/Larkum1to5/Larkum'+str(datasetIndex)+'/IVTrain.mat')
 trainTraces = trainData['IVTrain'][0][0]
@@ -38,9 +40,8 @@ trainId = trainTraces[2].squeeze()
 dt = trainTraces[4].squeeze()
 traceLen = trainTraces[6].squeeze()
 traceT = traceLen*dt
-myExp = Experiment('Experiment 1',0.1)
 
-# Add training set data
+# Add test set data
 myExp.addTrainingSetTrace_TwoComp(trainVs, 10**-3, trainIs , 10**-12, trainVd, 10**-3, trainId , 10**-12, len(trainIs)*0.1, FILETYPE='Array')
 
 testData = io.loadmat('/home/andrej/Documents/Code/Larkum1to5/Larkum'+str(datasetIndex)+'/IVTest.mat')
@@ -57,6 +58,7 @@ dt = testTraces[4].squeeze()
 traceLen = testTraces[6].squeeze()
 traceT = traceLen*dt
 
+# add the same test data several times so that a Md* measure can be computed (but it doesn't really make sense)
 for i in range(10):
     myExp.addTestSetTrace_TwoComp(testVs, 10**-3, testIs , 10**-12, testVd, 10**-3, testId , 10**-12, len(testIs)*0.1, FILETYPE='Array')
 
@@ -77,13 +79,13 @@ myGIF.Tref = 4.0
 filterLength = 1000.0
 
 myGIF.eta_A = Filter_Powerlaw()
-myGIF.eta_A.setMetaParameters(length=filterLength, Tconst=5, power=-0.8, powerTime=2000)
+myGIF.eta_A.setMetaParameters(length=filterLength, Tconst=5, power=-0.8, powerTime=200)
 
 myGIF.k_s = Filter_ThreeExpos()
-myGIF.k_s.setMetaParameters(length=filterLength, tau_one=10, tau_two=100, tau_three=1000)
+myGIF.k_s.setMetaParameters(length=filterLength, tau_one=1, tau_two=5, tau_three=10)
 
 myGIF.e_ds = Filter_ThreeExpos()
-myGIF.e_ds.setMetaParameters(length=filterLength, tau_one=10, tau_two=100, tau_three=1000)
+myGIF.e_ds.setMetaParameters(length=filterLength, tau_one=1, tau_two=5, tau_three=10)
 
 # initialize coefficients for filters
 initial_powerlaw_coeffs = np.array([0.2, 1])
@@ -109,9 +111,10 @@ myGIF.fit(myExp)
 # Plot the model parameters
 #myGIF.printParameters()
 myGIF.plotParameters()
+myGIF.plotParametersWithBasisfunctions()
 
 #tr = myExp.trainingset_traces[0]
-#(time, eta_a, spks) = myGIF.simulate(tr.I, tr.I_d)
+#(time, eta_a, spks, filtered_currents) = myGIF.simulate(tr.I, tr.I_d)
 
 
 # Save the model
@@ -122,10 +125,10 @@ myGIF.plotParameters()
 ############################################################################################################
 
 # Use the myGIF model to predict the spiking data of the test data set in myExp
-myPrediction = myExp.predictSpikes(myGIF, nb_rep=100)
+#myPrediction = myExp.predictSpikes(myGIF, nb_rep=100)
 
 # Compute Md* with a temporal precision of +/- 4ms
-Md = myPrediction.computeMD_Kistler(4.0, 0.1)    
+#Md = myPrediction.computeMD_Kistler(4.0, 0.1)    
 
 # Plot data vs model prediction
-myPrediction.plotRaster(delta=1000.0) 
+#myPrediction.plotRaster(delta=1000.0) 

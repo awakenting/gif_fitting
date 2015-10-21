@@ -6,7 +6,7 @@ More instructions are provided on the website.
 from Experiment import *
 from AEC_Badel import *
 from GIF import *
-from TwoCompGIF import *
+from GIF_pow import *
 from Filter_Rect_LogSpaced import *
 from Filter_Powerlaw import *
 
@@ -86,20 +86,20 @@ myGIF_rect.gamma = Filter_Rect_LogSpaced()
 myGIF_rect.gamma.setMetaParameters(length=500.0, binsize_lb=5.0, binsize_ub=1000.0, slope=5.0)
 
 # Create a new object GIF 
-#myGIF_pow = TwoCompGIF(0.1)
-#
-## Define parameters
-#myGIF_pow.Tref = 4.0 
-#
-#myGIF_pow.eta = Filter_Powerlaw()
-#myGIF_pow.eta.setMetaParameters(length=1000.0, Tconst=5, power=-0.8, powerTime=2000)
-#
-#myGIF_pow.gamma = Filter_Powerlaw()
-#myGIF_pow.gamma.setMetaParameters(length=1000.0, Tconst=5, power=-0.8, powerTime=2000)
-#
-#powerlaw_coeffs = np.array([0.2,1])
-#myGIF_pow.eta.setFilter_Coefficients(powerlaw_coeffs)
-#myGIF_pow.gamma.setFilter_Coefficients(powerlaw_coeffs)
+myGIF_pow = GIF_pow(0.1)
+
+# Define parameters
+myGIF_pow.Tref = 4.0 
+
+myGIF_pow.eta = Filter_Powerlaw()
+myGIF_pow.eta.setMetaParameters(length=1000.0, Tconst=5, power=-0.8, powerTime=2000)
+
+myGIF_pow.gamma = Filter_Powerlaw()
+myGIF_pow.gamma.setMetaParameters(length=1000.0, Tconst=5, power=-0.8, powerTime=2000)
+
+powerlaw_coeffs = np.array([0.2,1])
+myGIF_pow.eta.setFilter_Coefficients(powerlaw_coeffs)
+myGIF_pow.gamma.setFilter_Coefficients(powerlaw_coeffs)
 
 # Define the ROI of the training set to be used for the fit (in this example we will use only the first 100 s)
 myExp.trainingset_traces[0].setROI([[0,100000.0]])
@@ -112,7 +112,7 @@ myExp.detectSpikes_cython()
 
 # Perform the fit
 myGIF_rect.fit(myExp, DT_beforeSpike=5.0)
-#myGIF_pow.fit(myExp, DT_beforeSpike=5.0)
+myGIF_pow.fit(myExp, DT_beforeSpike=5.0)
 #myGIF_pow.fitVoltageReset(myExp, myGIF_pow.Tref, do_plot=False)
 
 #myGIF_pow.fitSubthresholdDynamics(myExp, DT_beforeSpike=5.0)
@@ -125,9 +125,9 @@ tr = myExp.trainingset_traces[0]
 # Plot the model parameters
 #myGIF.printParameters()
 myGIF_rect.plotParameters()   
-#myGIF_pow.plotParameters()   
-tr = myExp.trainingset_traces[0]
-(time, V, eta_sum, V_T, spks) = myGIF_rect.simulate(tr.I, tr.V[0])
+myGIF_pow.plotParameters()   
+#tr = myExp.trainingset_traces[0]
+#(time, V, eta_sum, V_T, spks) = myGIF_rect.simulate(tr.I, tr.V[0])
 
 # Save the model
 #myGIF.save('./myGIF.pck')
@@ -200,13 +200,13 @@ plt.show()
 ############################################################################################################
 
 # Use the myGIF model to predict the spiking data of the test data set in myExp
-myPrediction = myExp.predictSpikes(myGIF_rect, nb_rep=500)
+#myPrediction = myExp.predictSpikes(myGIF_rect, nb_rep=500)
 
 # Compute Md* with a temporal precision of +/- 4ms
-Md = myPrediction.computeMD_Kistler(4.0, 0.1)    
+#Md = myPrediction.computeMD_Kistler(4.0, 0.1)    
 
 # Plot data vs model prediction
-myPrediction.plotRaster(delta=1000.0) 
+#myPrediction.plotRaster(delta=1000.0) 
 
 
 
