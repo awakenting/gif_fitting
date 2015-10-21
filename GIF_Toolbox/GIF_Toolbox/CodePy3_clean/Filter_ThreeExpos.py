@@ -63,15 +63,35 @@ class Filter_ThreeExpos(Filter) :
         Given a particular dt, the function compute and return the support t and f(t).
         """
         
-        length_i = self.p_length/dt        
+        length_i = self.p_length/dt
+        p_taus_i = [self.p_tau_dict['tau'+str(i)]/dt for i in range(3)]
         
         # filter is the sum of the three exponentials
-        filter_interpol =     self.filter_coeff[0]*np.exp(-np.arange(length_i)/self.p_tau_dict['tau'+str(0)])\
-                            + self.filter_coeff[1]*np.exp(-np.arange(length_i)/self.p_tau_dict['tau'+str(1)])\
-                            + self.filter_coeff[2]*np.exp(-np.arange(length_i)/self.p_tau_dict['tau'+str(2)])
+        filter_interpol =     self.filter_coeff[0]*np.exp(-np.arange(length_i)/p_taus_i[0])\
+                            + self.filter_coeff[1]*np.exp(-np.arange(length_i)/p_taus_i[1])\
+                            + self.filter_coeff[2]*np.exp(-np.arange(length_i)/p_taus_i[2])
 
 
         filter_interpol_support = np.arange(len(filter_interpol))*dt
+
+        return (filter_interpol_support, filter_interpol)
+        
+    def getInterpolatedBasisfunctions(self, dt) :
+            
+        """
+        Given a particular dt, the function computes and return the support t and the basisfunctions of f(t).
+        """
+        
+        length_i = self.p_length/dt
+        p_taus_i = [self.p_tau_dict['tau'+str(i)]/dt for i in range(3)]
+        
+        # filter is the sum of the three exponentials
+        filter_interpol =     [self.filter_coeff[0]*np.exp(-np.arange(length_i)/p_taus_i[0]),\
+                               self.filter_coeff[1]*np.exp(-np.arange(length_i)/p_taus_i[1]),\
+                               self.filter_coeff[2]*np.exp(-np.arange(length_i)/p_taus_i[2])]
+
+
+        filter_interpol_support = np.arange(len(filter_interpol[0]))*dt
 
         return (filter_interpol_support, filter_interpol)
 
@@ -116,16 +136,17 @@ class Filter_ThreeExpos(Filter) :
         
         T_i     = int(len(I))
         length_i = self.p_length/dt
+        p_taus_i = [self.p_tau_dict['tau'+str(i)]/dt for i in range(3)]
         
 #        bins_i  = Tools.timeToIndex(self.bins, dt)                
 #        bins_l  = self.getNbOfBasisFunctions()
         
         X = np.zeros( (T_i, 3) )
-        I_tmp = np.array(I,dtype='float64')        
+        I_tmp = np.array(I,dtype='float64')
         
         # Fill matrix
         for basis in np.arange(3) :
-            window = np.exp(-np.arange(length_i)/self.p_tau_dict['tau'+str(basis)])
+            window = np.exp(-np.arange(length_i)/p_taus_i[basis])
             window = np.array(window,dtype='float64')  
         
             F_star_I = fftconvolve(window, I_tmp, mode='full')*dt
