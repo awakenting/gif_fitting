@@ -25,7 +25,7 @@ mpl.rcParams['axes.facecolor'] = 'white'
 ############################################################################################################
 myExp = Experiment('Experiment 1',0.1)
 
-datasetIndex = 5
+datasetIndex = 4
 
 trainData = io.loadmat('/home/andrej/Documents/Code/Larkum1to5/Larkum'+str(datasetIndex)+'/IVTrain.mat')
 trainTraces = trainData['IVTrain'][0][0]
@@ -82,10 +82,10 @@ myGIF.eta_A = Filter_Powerlaw()
 myGIF.eta_A.setMetaParameters(length=filterLength, Tconst=5, power=-0.8, powerTime=200)
 
 myGIF.k_s = Filter_ThreeExpos()
-myGIF.k_s.setMetaParameters(length=filterLength, tau_one=1, tau_two=5, tau_three=10)
+myGIF.k_s.setMetaParameters(length=filterLength, tau_one=3, tau_two=10, tau_three=50)
 
 myGIF.e_ds = Filter_ThreeExpos()
-myGIF.e_ds.setMetaParameters(length=filterLength, tau_one=1, tau_two=5, tau_three=10)
+myGIF.e_ds.setMetaParameters(length=filterLength, tau_one=3, tau_two=10, tau_three=50)
 
 # initialize coefficients for filters
 initial_powerlaw_coeffs = np.array([0.2, 1])
@@ -125,10 +125,10 @@ myGIF.plotParametersWithBasisfunctions()
 ############################################################################################################
 
 # Use the myGIF model to predict the spiking data of the test data set in myExp
-#myPrediction = myExp.predictSpikes(myGIF, nb_rep=100)
+myPrediction = myExp.predictSpikes(myGIF, nb_rep=100)
 
 # Compute Md* with a temporal precision of +/- 4ms
-#Md = myPrediction.computeMD_Kistler(4.0, 0.1)    
+Md = myPrediction.computeMD_Kistler(4.0, 0.1)    
 
 # Plot data vs model prediction
-#myPrediction.plotRaster(delta=1000.0) 
+myPrediction.plotRaster(delta=1000.0) 

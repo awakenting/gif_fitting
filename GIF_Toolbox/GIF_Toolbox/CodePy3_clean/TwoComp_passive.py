@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import numpy as np
+from scipy.optimize import minimize
 
 from numpy.linalg import inv
 
@@ -66,7 +67,7 @@ class TwoComp_passive(ThresholdModel) :
         """
         self.setDt(dt)
     
-        (time, eta_A_sum, spks_times) = self.simulate(I, I_d)
+        (time, eta_A_sum, spks_times, filtered_currents) = self.simulate(I, I_d)
         
         return spks_times
 
@@ -260,10 +261,21 @@ class TwoComp_passive(ThresholdModel) :
         
         logL_poisson = N_spikes_tot*(np.log(N_spikes_tot/T_tot)-1)
 
-        # Perform gradient ascent
+        # Perform gradient ascent ...
 
+        # ... with scipy function
+        
+        print('Do gradient ascent with scipy function')
+        
+        result = minimize(self.likelihood, theta0, (all_X[0], all_X_spikes[0], all_sum_X_spikes[0]), method = 'Newton-CG', jac=self.gradient, options = {'maxiter':maxIter,'disp':True})
+        
+        theta_opt = result.x
+        
+
+        # ... with costum implementation
+        '''
         print ("Maximize log-likelihood (bit/spks)...")
-                        
+        
         theta = theta0
         old_L = 1
 
@@ -296,9 +308,9 @@ class TwoComp_passive(ThresholdModel) :
     
         if (i==maxIter - 1) :                                           # If too many iterations
             print ("\nNot converged after %d iterations.\n" % (maxIter))
+        '''
 
-
-        return theta
+        return theta_opt
      
         
     def computeLikelihoodGradientHessian(self, theta, X, X_spikes, sum_X_spikes) : 
@@ -368,6 +380,31 @@ class TwoComp_passive(ThresholdModel) :
         
                 
         return (X, X_spikes, sum_X_spikes,  N_spikes, T_l)
+        
+    def likelihood(self, theta, X, X_spikes, sum_X_spikes):
+        
+        dt = self.dt/1000.0     # put dt in units of seconds (to be consistent with lambda_0)
+        
+        X_spikestheta    = np.dot(X_spikes,theta)
+        Xtheta           = np.dot(X,theta)
+        expXtheta        = np.exp(Xtheta)
+
+        # Compute likelihood (would be nice to improve this to get a normalized likelihood)
+        L = -(np.sum(X_spikestheta) - self.lambda0*dt*np.sum(expXtheta))
+        
+        return L
+        
+    def gradient (self, theta, X, X_spikes, sum_X_spikes):
+        
+        dt = self.dt/1000.0     # put dt in units of seconds (to be consistent with lambda_0)
+        
+        X_spikestheta    = np.dot(X_spikes,theta)
+        Xtheta           = np.dot(X,theta)
+        expXtheta        = np.exp(Xtheta)
+        
+        G = sum_X_spikes - self.lambda0*dt*np.dot(np.transpose(X), expXtheta)
+        
+        return G
  
  
         
