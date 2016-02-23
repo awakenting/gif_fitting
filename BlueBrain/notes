@@ -1,0 +1,15 @@
+new project:
+- find martinotti cell traces in blue brain project data
+- e.g. curated data: animal 51, i can go through these websites: http://microcircuits.epfl.ch/data/released_data/A51.txt
+
+- som:1, vip:0, pv:0, note others
+
+- i want to merge the single recordings per animal and therefore looked at if the current and voltage levels are the same. here I note for which animals it's not the case:
+	- non-matching animals:
+		- A77: two groups for currents but voltages almost all different
+		- B80: voltages start from -68 to -72
+		- B3:  voltages start from -70 to -76
+		- B22: voltages end from -68 to -74
+		- E87: voltages start from -67 to -76
+		- D22: voltages end at -54 and at -60
+
