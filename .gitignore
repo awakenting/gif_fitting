@@ -1,3 +1,6 @@
 *.png
 *.ibw
-__pycache__*
+*_pycache_*
+*~
+*temporary*
+*article_4_data*
