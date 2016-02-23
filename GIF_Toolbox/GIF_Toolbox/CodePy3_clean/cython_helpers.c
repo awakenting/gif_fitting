@@ -3,12 +3,12 @@
 /* BEGIN: Cython Metadata
 {
     "distutils": {
+        "include_dirs": [
+            "/home/andrej/anaconda3/lib/python3.4/site-packages/numpy/core/include"
+        ],
         "depends": [
             "/home/andrej/anaconda3/lib/python3.4/site-packages/numpy/core/include/numpy/arrayobject.h",
             "/home/andrej/anaconda3/lib/python3.4/site-packages/numpy/core/include/numpy/ufuncobject.h"
-        ],
-        "include_dirs": [
-            "/home/andrej/anaconda3/lib/python3.4/site-packages/numpy/core/include"
         ]
     }
 }
@@ -1143,7 +1143,7 @@ static PyObject *__pyx_builtin_RuntimeError;
 static PyObject *__pyx_pf_14cython_helpers_c_detectSpikes(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_p_T_i, int __pyx_v_p_ref_ind, float __pyx_v_p_threshold, PyArrayObject *__pyx_v_V); /* proto */
 static PyObject *__pyx_pf_14cython_helpers_2c_generateOUprocess(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_T_ind, float __pyx_v_dt, float __pyx_v_tau, float __pyx_v_sigma, float __pyx_v_mu, PyArrayObject *__pyx_v_OU_process, PyArrayObject *__pyx_v_white_noise); /* proto */
 static PyObject *__pyx_pf_14cython_helpers_4c_simulate(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_p_T, float __pyx_v_p_dt, float __pyx_v_p_gl, float __pyx_v_p_C, float __pyx_v_p_El, float __pyx_v_p_Vr, float __pyx_v_p_Tref, float __pyx_v_p_Vt_star, float __pyx_v_p_DV, float __pyx_v_p_lambda0, PyArrayObject *__pyx_v_V, PyArrayObject *__pyx_v_I, PyArrayObject *__pyx_v_p_eta, int __pyx_v_p_eta_l, PyArrayObject *__pyx_v_eta_sum, PyArrayObject *__pyx_v_p_gamma, PyArrayObject *__pyx_v_gamma_sum, int __pyx_v_p_gamma_l, PyArrayObject *__pyx_v_spks); /* proto */
-static PyObject *__pyx_pf_14cython_helpers_6c_simulate_twoComp(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_p_T, float __pyx_v_p_dt, int __pyx_v_p_Tref_ind, float __pyx_v_p_lambda0, int __pyx_v_p_eta_A_l, PyArrayObject *__pyx_v_p_eta_A, PyArrayObject *__pyx_v_eta_A_sum, PyArrayObject *__pyx_v_filtered_currents, PyArrayObject *__pyx_v_spks); /* proto */
+static PyObject *__pyx_pf_14cython_helpers_6c_simulate_twoComp(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_p_T, float __pyx_v_p_dt, int __pyx_v_p_Tref_ind, float __pyx_v_p_lambda0, float __pyx_v_p_E0, int __pyx_v_p_eta_A_l, PyArrayObject *__pyx_v_p_eta_A, PyArrayObject *__pyx_v_eta_A_sum, PyArrayObject *__pyx_v_filtered_currents, PyArrayObject *__pyx_v_spks); /* proto */
 static PyObject *__pyx_pf_14cython_helpers_8c_simulateDeterministic_forceSpikes(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_p_T, float __pyx_v_p_dt, float __pyx_v_p_gl, float __pyx_v_p_C, float __pyx_v_p_El, float __pyx_v_p_Vr, float __pyx_v_p_Tref, PyArrayObject *__pyx_v_V, PyArrayObject *__pyx_v_I, PyArrayObject *__pyx_v_eta_sum, PyArrayObject *__pyx_v_spks_i); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
@@ -1178,6 +1178,7 @@ static char __pyx_k_sys[] = "sys";
 static char __pyx_k_tau[] = "tau";
 static char __pyx_k_main[] = "__main__";
 static char __pyx_k_p_DV[] = "p_DV";
+static char __pyx_k_p_E0[] = "p_E0";
 static char __pyx_k_p_El[] = "p_El";
 static char __pyx_k_p_Vr[] = "p_Vr";
 static char __pyx_k_p_dt[] = "p_dt";
@@ -1286,6 +1287,7 @@ static PyObject *__pyx_n_s_np;
 static PyObject *__pyx_n_s_numpy;
 static PyObject *__pyx_n_s_p_C;
 static PyObject *__pyx_n_s_p_DV;
+static PyObject *__pyx_n_s_p_E0;
 static PyObject *__pyx_n_s_p_El;
 static PyObject *__pyx_n_s_p_T;
 static PyObject *__pyx_n_s_p_T_i;
@@ -2775,7 +2777,7 @@ static PyObject *__pyx_pf_14cython_helpers_4c_simulate(CYTHON_UNUSED PyObject *_
  * 
  *     return V, eta_sum, gamma_sum, spks             # <<<<<<<<<<<<<<
  * 
- * def c_simulate_twoComp (int p_T, float p_dt, int p_Tref_ind, float p_lambda0, int p_eta_A_l, np.ndarray[DTYPE_t] p_eta_A,
+ * def c_simulate_twoComp (int p_T, float p_dt, int p_Tref_ind, float p_lambda0, float p_E0, int p_eta_A_l, np.ndarray[DTYPE_t] p_eta_A,
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_1 = PyTuple_New(4); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -2844,7 +2846,7 @@ static PyObject *__pyx_pf_14cython_helpers_4c_simulate(CYTHON_UNUSED PyObject *_
 /* "cython_helpers.pyx":87
  *     return V, eta_sum, gamma_sum, spks
  * 
- * def c_simulate_twoComp (int p_T, float p_dt, int p_Tref_ind, float p_lambda0, int p_eta_A_l, np.ndarray[DTYPE_t] p_eta_A,             # <<<<<<<<<<<<<<
+ * def c_simulate_twoComp (int p_T, float p_dt, int p_Tref_ind, float p_lambda0, float p_E0, int p_eta_A_l, np.ndarray[DTYPE_t] p_eta_A,             # <<<<<<<<<<<<<<
  *                         np.ndarray[DTYPE_t] eta_A_sum, np.ndarray[DTYPE_t] filtered_currents, np.ndarray[DTYPE_t] spks):
  * 
  */
@@ -2857,6 +2859,7 @@ static PyObject *__pyx_pw_14cython_helpers_7c_simulate_twoComp(PyObject *__pyx_s
   float __pyx_v_p_dt;
   int __pyx_v_p_Tref_ind;
   float __pyx_v_p_lambda0;
+  float __pyx_v_p_E0;
   int __pyx_v_p_eta_A_l;
   PyArrayObject *__pyx_v_p_eta_A = 0;
   PyArrayObject *__pyx_v_eta_A_sum = 0;
@@ -2869,12 +2872,13 @@ static PyObject *__pyx_pw_14cython_helpers_7c_simulate_twoComp(PyObject *__pyx_s
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("c_simulate_twoComp (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_p_T,&__pyx_n_s_p_dt,&__pyx_n_s_p_Tref_ind,&__pyx_n_s_p_lambda0,&__pyx_n_s_p_eta_A_l,&__pyx_n_s_p_eta_A,&__pyx_n_s_eta_A_sum,&__pyx_n_s_filtered_currents,&__pyx_n_s_spks,0};
-    PyObject* values[9] = {0,0,0,0,0,0,0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_p_T,&__pyx_n_s_p_dt,&__pyx_n_s_p_Tref_ind,&__pyx_n_s_p_lambda0,&__pyx_n_s_p_E0,&__pyx_n_s_p_eta_A_l,&__pyx_n_s_p_eta_A,&__pyx_n_s_eta_A_sum,&__pyx_n_s_filtered_currents,&__pyx_n_s_spks,0};
+    PyObject* values[10] = {0,0,0,0,0,0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case 10: values[9] = PyTuple_GET_ITEM(__pyx_args, 9);
         case  9: values[8] = PyTuple_GET_ITEM(__pyx_args, 8);
         case  8: values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
         case  7: values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
@@ -2895,48 +2899,53 @@ static PyObject *__pyx_pw_14cython_helpers_7c_simulate_twoComp(PyObject *__pyx_s
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_p_dt)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("c_simulate_twoComp", 1, 9, 9, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("c_simulate_twoComp", 1, 10, 10, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_p_Tref_ind)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("c_simulate_twoComp", 1, 9, 9, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("c_simulate_twoComp", 1, 10, 10, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  3:
         if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_p_lambda0)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("c_simulate_twoComp", 1, 9, 9, 3); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("c_simulate_twoComp", 1, 10, 10, 3); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  4:
-        if (likely((values[4] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_p_eta_A_l)) != 0)) kw_args--;
+        if (likely((values[4] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_p_E0)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("c_simulate_twoComp", 1, 9, 9, 4); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("c_simulate_twoComp", 1, 10, 10, 4); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  5:
-        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_p_eta_A)) != 0)) kw_args--;
+        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_p_eta_A_l)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("c_simulate_twoComp", 1, 9, 9, 5); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("c_simulate_twoComp", 1, 10, 10, 5); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  6:
-        if (likely((values[6] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_eta_A_sum)) != 0)) kw_args--;
+        if (likely((values[6] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_p_eta_A)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("c_simulate_twoComp", 1, 9, 9, 6); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("c_simulate_twoComp", 1, 10, 10, 6); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  7:
-        if (likely((values[7] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_filtered_currents)) != 0)) kw_args--;
+        if (likely((values[7] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_eta_A_sum)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("c_simulate_twoComp", 1, 9, 9, 7); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("c_simulate_twoComp", 1, 10, 10, 7); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  8:
-        if (likely((values[8] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_spks)) != 0)) kw_args--;
+        if (likely((values[8] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_filtered_currents)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("c_simulate_twoComp", 1, 9, 9, 8); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("c_simulate_twoComp", 1, 10, 10, 8); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        }
+        case  9:
+        if (likely((values[9] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_spks)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("c_simulate_twoComp", 1, 10, 10, 9); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
         if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "c_simulate_twoComp") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 9) {
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 10) {
       goto __pyx_L5_argtuple_error;
     } else {
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
@@ -2948,20 +2957,22 @@ static PyObject *__pyx_pw_14cython_helpers_7c_simulate_twoComp(PyObject *__pyx_s
       values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
       values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
       values[8] = PyTuple_GET_ITEM(__pyx_args, 8);
+      values[9] = PyTuple_GET_ITEM(__pyx_args, 9);
     }
     __pyx_v_p_T = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_p_T == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     __pyx_v_p_dt = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_p_dt == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     __pyx_v_p_Tref_ind = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_p_Tref_ind == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     __pyx_v_p_lambda0 = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_p_lambda0 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
-    __pyx_v_p_eta_A_l = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_p_eta_A_l == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
-    __pyx_v_p_eta_A = ((PyArrayObject *)values[5]);
-    __pyx_v_eta_A_sum = ((PyArrayObject *)values[6]);
-    __pyx_v_filtered_currents = ((PyArrayObject *)values[7]);
-    __pyx_v_spks = ((PyArrayObject *)values[8]);
+    __pyx_v_p_E0 = __pyx_PyFloat_AsFloat(values[4]); if (unlikely((__pyx_v_p_E0 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_p_eta_A_l = __Pyx_PyInt_As_int(values[5]); if (unlikely((__pyx_v_p_eta_A_l == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_p_eta_A = ((PyArrayObject *)values[6]);
+    __pyx_v_eta_A_sum = ((PyArrayObject *)values[7]);
+    __pyx_v_filtered_currents = ((PyArrayObject *)values[8]);
+    __pyx_v_spks = ((PyArrayObject *)values[9]);
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("c_simulate_twoComp", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("c_simulate_twoComp", 1, 10, 10, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("cython_helpers.c_simulate_twoComp", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2971,7 +2982,7 @@ static PyObject *__pyx_pw_14cython_helpers_7c_simulate_twoComp(PyObject *__pyx_s
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_eta_A_sum), __pyx_ptype_5numpy_ndarray, 1, "eta_A_sum", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 88; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_filtered_currents), __pyx_ptype_5numpy_ndarray, 1, "filtered_currents", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 88; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_spks), __pyx_ptype_5numpy_ndarray, 1, "spks", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 88; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_r = __pyx_pf_14cython_helpers_6c_simulate_twoComp(__pyx_self, __pyx_v_p_T, __pyx_v_p_dt, __pyx_v_p_Tref_ind, __pyx_v_p_lambda0, __pyx_v_p_eta_A_l, __pyx_v_p_eta_A, __pyx_v_eta_A_sum, __pyx_v_filtered_currents, __pyx_v_spks);
+  __pyx_r = __pyx_pf_14cython_helpers_6c_simulate_twoComp(__pyx_self, __pyx_v_p_T, __pyx_v_p_dt, __pyx_v_p_Tref_ind, __pyx_v_p_lambda0, __pyx_v_p_E0, __pyx_v_p_eta_A_l, __pyx_v_p_eta_A, __pyx_v_eta_A_sum, __pyx_v_filtered_currents, __pyx_v_spks);
 
   /* function exit code */
   goto __pyx_L0;
@@ -2982,7 +2993,7 @@ static PyObject *__pyx_pw_14cython_helpers_7c_simulate_twoComp(PyObject *__pyx_s
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_14cython_helpers_6c_simulate_twoComp(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_p_T, float __pyx_v_p_dt, int __pyx_v_p_Tref_ind, float __pyx_v_p_lambda0, int __pyx_v_p_eta_A_l, PyArrayObject *__pyx_v_p_eta_A, PyArrayObject *__pyx_v_eta_A_sum, PyArrayObject *__pyx_v_filtered_currents, PyArrayObject *__pyx_v_spks) {
+static PyObject *__pyx_pf_14cython_helpers_6c_simulate_twoComp(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_p_T, float __pyx_v_p_dt, int __pyx_v_p_Tref_ind, float __pyx_v_p_lambda0, float __pyx_v_p_E0, int __pyx_v_p_eta_A_l, PyArrayObject *__pyx_v_p_eta_A, PyArrayObject *__pyx_v_eta_A_sum, PyArrayObject *__pyx_v_filtered_currents, PyArrayObject *__pyx_v_spks) {
   int __pyx_v_t;
   float __pyx_v_p_dontspike;
   float __pyx_v_temp_lambda;
@@ -3127,7 +3138,7 @@ static PyObject *__pyx_pf_14cython_helpers_6c_simulate_twoComp(CYTHON_UNUSED PyO
  *     t = 0
  *     while t < (p_T-1):             # <<<<<<<<<<<<<<
  * 
- *         temp_lambda = p_lambda0* exp(filtered_currents[t] + eta_A_sum[t])
+ *         temp_lambda = p_lambda0* exp(p_E0 + filtered_currents[t] + eta_A_sum[t])
  */
   while (1) {
     __pyx_t_7 = ((__pyx_v_t < (__pyx_v_p_T - 1)) != 0);
@@ -3136,7 +3147,7 @@ static PyObject *__pyx_pf_14cython_helpers_6c_simulate_twoComp(CYTHON_UNUSED PyO
     /* "cython_helpers.pyx":98
  *     while t < (p_T-1):
  * 
- *         temp_lambda = p_lambda0* exp(filtered_currents[t] + eta_A_sum[t])             # <<<<<<<<<<<<<<
+ *         temp_lambda = p_lambda0* exp(p_E0 + filtered_currents[t] + eta_A_sum[t])             # <<<<<<<<<<<<<<
  *         p_dontspike = exp(-temp_lambda*(p_dt/1000.0))
  * 
  */
@@ -3160,11 +3171,11 @@ static PyObject *__pyx_pf_14cython_helpers_6c_simulate_twoComp(CYTHON_UNUSED PyO
       __Pyx_RaiseBufferIndexError(__pyx_t_10);
       {__pyx_filename = __pyx_f[0]; __pyx_lineno = 98; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
-    __pyx_v_temp_lambda = (__pyx_v_p_lambda0 * exp(((*__Pyx_BufPtrStrided1d(__pyx_t_14cython_helpers_DTYPE_t *, __pyx_pybuffernd_filtered_currents.rcbuffer->pybuffer.buf, __pyx_t_8, __pyx_pybuffernd_filtered_currents.diminfo[0].strides)) + (*__Pyx_BufPtrStrided1d(__pyx_t_14cython_helpers_DTYPE_t *, __pyx_pybuffernd_eta_A_sum.rcbuffer->pybuffer.buf, __pyx_t_9, __pyx_pybuffernd_eta_A_sum.diminfo[0].strides)))));
+    __pyx_v_temp_lambda = (__pyx_v_p_lambda0 * exp(((__pyx_v_p_E0 + (*__Pyx_BufPtrStrided1d(__pyx_t_14cython_helpers_DTYPE_t *, __pyx_pybuffernd_filtered_currents.rcbuffer->pybuffer.buf, __pyx_t_8, __pyx_pybuffernd_filtered_currents.diminfo[0].strides))) + (*__Pyx_BufPtrStrided1d(__pyx_t_14cython_helpers_DTYPE_t *, __pyx_pybuffernd_eta_A_sum.rcbuffer->pybuffer.buf, __pyx_t_9, __pyx_pybuffernd_eta_A_sum.diminfo[0].strides)))));
 
     /* "cython_helpers.pyx":99
  * 
- *         temp_lambda = p_lambda0* exp(filtered_currents[t] + eta_A_sum[t])
+ *         temp_lambda = p_lambda0* exp(p_E0 + filtered_currents[t] + eta_A_sum[t])
  *         p_dontspike = exp(-temp_lambda*(p_dt/1000.0))             # <<<<<<<<<<<<<<
  * 
  *         if (r[t] > p_dontspike):
@@ -3292,7 +3303,7 @@ static PyObject *__pyx_pf_14cython_helpers_6c_simulate_twoComp(CYTHON_UNUSED PyO
   /* "cython_helpers.pyx":87
  *     return V, eta_sum, gamma_sum, spks
  * 
- * def c_simulate_twoComp (int p_T, float p_dt, int p_Tref_ind, float p_lambda0, int p_eta_A_l, np.ndarray[DTYPE_t] p_eta_A,             # <<<<<<<<<<<<<<
+ * def c_simulate_twoComp (int p_T, float p_dt, int p_Tref_ind, float p_lambda0, float p_E0, int p_eta_A_l, np.ndarray[DTYPE_t] p_eta_A,             # <<<<<<<<<<<<<<
  *                         np.ndarray[DTYPE_t] eta_A_sum, np.ndarray[DTYPE_t] filtered_currents, np.ndarray[DTYPE_t] spks):
  * 
  */
@@ -5988,6 +5999,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_numpy, __pyx_k_numpy, sizeof(__pyx_k_numpy), 0, 0, 1, 1},
   {&__pyx_n_s_p_C, __pyx_k_p_C, sizeof(__pyx_k_p_C), 0, 0, 1, 1},
   {&__pyx_n_s_p_DV, __pyx_k_p_DV, sizeof(__pyx_k_p_DV), 0, 0, 1, 1},
+  {&__pyx_n_s_p_E0, __pyx_k_p_E0, sizeof(__pyx_k_p_E0), 0, 0, 1, 1},
   {&__pyx_n_s_p_El, __pyx_k_p_El, sizeof(__pyx_k_p_El), 0, 0, 1, 1},
   {&__pyx_n_s_p_T, __pyx_k_p_T, sizeof(__pyx_k_p_T), 0, 0, 1, 1},
   {&__pyx_n_s_p_T_i, __pyx_k_p_T_i, sizeof(__pyx_k_p_T_i), 0, 0, 1, 1},
@@ -6146,14 +6158,14 @@ static int __Pyx_InitCachedConstants(void) {
   /* "cython_helpers.pyx":87
  *     return V, eta_sum, gamma_sum, spks
  * 
- * def c_simulate_twoComp (int p_T, float p_dt, int p_Tref_ind, float p_lambda0, int p_eta_A_l, np.ndarray[DTYPE_t] p_eta_A,             # <<<<<<<<<<<<<<
+ * def c_simulate_twoComp (int p_T, float p_dt, int p_Tref_ind, float p_lambda0, float p_E0, int p_eta_A_l, np.ndarray[DTYPE_t] p_eta_A,             # <<<<<<<<<<<<<<
  *                         np.ndarray[DTYPE_t] eta_A_sum, np.ndarray[DTYPE_t] filtered_currents, np.ndarray[DTYPE_t] spks):
  * 
  */
-  __pyx_tuple__13 = PyTuple_Pack(13, __pyx_n_s_p_T, __pyx_n_s_p_dt, __pyx_n_s_p_Tref_ind, __pyx_n_s_p_lambda0, __pyx_n_s_p_eta_A_l, __pyx_n_s_p_eta_A, __pyx_n_s_eta_A_sum, __pyx_n_s_filtered_currents, __pyx_n_s_spks, __pyx_n_s_t, __pyx_n_s_p_dontspike, __pyx_n_s_temp_lambda, __pyx_n_s_r); if (unlikely(!__pyx_tuple__13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__13 = PyTuple_Pack(14, __pyx_n_s_p_T, __pyx_n_s_p_dt, __pyx_n_s_p_Tref_ind, __pyx_n_s_p_lambda0, __pyx_n_s_p_E0, __pyx_n_s_p_eta_A_l, __pyx_n_s_p_eta_A, __pyx_n_s_eta_A_sum, __pyx_n_s_filtered_currents, __pyx_n_s_spks, __pyx_n_s_t, __pyx_n_s_p_dontspike, __pyx_n_s_temp_lambda, __pyx_n_s_r); if (unlikely(!__pyx_tuple__13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__13);
   __Pyx_GIVEREF(__pyx_tuple__13);
-  __pyx_codeobj__14 = (PyObject*)__Pyx_PyCode_New(9, 0, 13, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__13, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_andrej_Documents_Code_GIF, __pyx_n_s_c_simulate_twoComp, 87, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__14 = (PyObject*)__Pyx_PyCode_New(10, 0, 14, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__13, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_andrej_Documents_Code_GIF, __pyx_n_s_c_simulate_twoComp, 87, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "cython_helpers.pyx":115
  *     return eta_A_sum, spks
@@ -6399,7 +6411,7 @@ PyMODINIT_FUNC PyInit_cython_helpers(void)
   /* "cython_helpers.pyx":87
  *     return V, eta_sum, gamma_sum, spks
  * 
- * def c_simulate_twoComp (int p_T, float p_dt, int p_Tref_ind, float p_lambda0, int p_eta_A_l, np.ndarray[DTYPE_t] p_eta_A,             # <<<<<<<<<<<<<<
+ * def c_simulate_twoComp (int p_T, float p_dt, int p_Tref_ind, float p_lambda0, float p_E0, int p_eta_A_l, np.ndarray[DTYPE_t] p_eta_A,             # <<<<<<<<<<<<<<
  *                         np.ndarray[DTYPE_t] eta_A_sum, np.ndarray[DTYPE_t] filtered_currents, np.ndarray[DTYPE_t] spks):
  * 
  */

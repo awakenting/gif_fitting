@@ -38,6 +38,8 @@ class TwoComp_passive(ThresholdModel) :
         
         self.lambda0 = 1.0              # by default this parameter is always set to 1.0 Hz
         
+        self.E0 = np.array([5])                   # mV, initial value for the reversal potential
+        
         self.k_s       = Filter_ThreeExpos()  # nA, kernel of somatic membrane filter
         self.e_ds      = Filter_ThreeExpos()  # nA, kernel linking the current injected in the dendrite to the current reaching the soma
         self.eta_A     = Filter_Powerlaw()    # nA, effective spike-triggered adaptation (must be instance of class Filter)                
@@ -67,7 +69,7 @@ class TwoComp_passive(ThresholdModel) :
         """
         self.setDt(dt)
     
-        (time, eta_A_sum, spks_times, filtered_currents) = self.simulate(I, I_d)
+        (time, eta_A_sum, spks_times, filtered_currents, p_dontspike_trace) = self.simulate(I, I_d)
         
         return spks_times
 
@@ -91,7 +93,8 @@ class TwoComp_passive(ThresholdModel) :
         
         # Model parameters
         p_Tref_ind = int(self.Tref/p_dt)
-        p_lambda0   = np.double(self.lambda0)
+        p_lambda0  = np.double(self.lambda0)
+        p_E0       = self.E0
         
         # Model kernels   
         (p_eta_A_support, p_eta_A) = self.eta_A.getInterpolatedFilter(self.dt)   
@@ -109,7 +112,7 @@ class TwoComp_passive(ThresholdModel) :
         filtered_currents = filtered_I + filtered_I_d
         
         
-        eta_A_sum, spks = cyth.c_simulate_twoComp(p_T, p_dt, p_Tref_ind, p_lambda0, p_eta_A_l, p_eta_A, eta_A_sum, filtered_currents, spks)
+        eta_A_sum, spks = cyth.c_simulate_twoComp(p_T, p_dt, p_Tref_ind, p_lambda0, p_E0, p_eta_A_l, p_eta_A, eta_A_sum, filtered_currents, spks)
         
         # this is a pure python implementation for debugging the code        
         '''
@@ -135,14 +138,18 @@ class TwoComp_passive(ThresholdModel) :
             t += 1
         '''
         
+        
         time = np.arange(p_T)*self.dt
         
         eta_A_sum   = eta_A_sum[:p_T]     
+        
+        lambda_trace = p_lambda0* np.exp(p_E0 + filtered_currents + eta_A_sum)
+        p_dontspike_trace = np.exp(-lambda_trace*(p_dt/1000.0))
      
         spks = (np.where(spks==1)[0])*self.dt
         
         
-        return (time, eta_A_sum, spks, filtered_currents)
+        return (time, eta_A_sum, spks, filtered_currents, p_dontspike_trace)
         
     def simulate_deterministicSpikes(self, I, I_d, spks):
         
@@ -205,24 +212,23 @@ class TwoComp_passive(ThresholdModel) :
     def fitModel(self, experiment):
                         
         self.setDt(experiment.dt)
-    
-        # Fit a dynamic threshold using a initial condition the result obtained by fitting a static threshold
-        
+            
         print ("\nTwoComp_passive MODEL - Fit model...\n")
         
         # Perform fit        
-        theta0 = np.concatenate( ( self.k_s.getCoefficients(), self.e_ds.getCoefficients(), self.eta_A.getCoefficients()))
+        theta0 = np.concatenate( (self.E0, self.k_s.getCoefficients(), self.e_ds.getCoefficients(), self.eta_A.getCoefficients()))
         theta_opt = self.maximizeLikelihood(experiment, theta0, self.buildXmatrix)
         
         # Store result
-        self.k_s.setFilter_Coefficients(theta_opt[0:3])
-        self.e_ds.setFilter_Coefficients(theta_opt[3:6])
-        self.eta_A.setFilter_Coefficients(theta_opt[6:8])
+        self.E0 = theta_opt[0]
+        self.k_s.setFilter_Coefficients(theta_opt[1:4])
+        self.e_ds.setFilter_Coefficients(theta_opt[4:7])
+        self.eta_A.setFilter_Coefficients(theta_opt[7:9])
 
         self.printParameters()
           
         
-    def maximizeLikelihood(self, experiment, theta0, buildXmatrix, maxIter=int(1e03), stopCond=1e-06) :
+    def maximizeLikelihood(self, experiment, theta0, buildXmatrix, maxIter=int(1e04), stopCond=1e-06) :
     
         """
         Maximize likelihood. This function can be used to fit any model of the form lambda=exp(Xtheta).
@@ -265,15 +271,22 @@ class TwoComp_passive(ThresholdModel) :
 
         # ... with scipy function
         
-        print('Do gradient ascent with scipy function')
+#        print('Do gradient ascent with scipy function')
+        # using the newton-cg method
+#        result = minimize(self.likelihood, theta0, (all_X[0], all_X_spikes[0], all_sum_X_spikes[0]), method = 'Newton-CG', jac=self.gradient, options = {'maxiter':maxIter,'disp':True})
         
-        result = minimize(self.likelihood, theta0, (all_X[0], all_X_spikes[0], all_sum_X_spikes[0]), method = 'Newton-CG', jac=self.gradient, options = {'maxiter':maxIter,'disp':True})
+        # ustng the nelder-mead method
+#        result = minimize(self.likelihood, theta0, (all_X[0], all_X_spikes[0], all_sum_X_spikes[0]), method = 'Nelder-Mead', options = {'maxiter':maxIter,'disp':True})
         
-        theta_opt = result.x
+        # ustng the conjugate gradient method
+#        result = minimize(self.likelihood, theta0, (all_X[0], all_X_spikes[0], all_sum_X_spikes[0]), method = 'CG', options = {'maxiter':maxIter,'disp':True})
+        
+        
+#        theta = result.x
         
 
         # ... with costum implementation
-        '''
+        
         print ("Maximize log-likelihood (bit/spks)...")
         
         theta = theta0
@@ -308,9 +321,9 @@ class TwoComp_passive(ThresholdModel) :
     
         if (i==maxIter - 1) :                                           # If too many iterations
             print ("\nNot converged after %d iterations.\n" % (maxIter))
-        '''
+        
 
-        return theta_opt
+        return theta
      
         
     def computeLikelihoodGradientHessian(self, theta, X, X_spikes, sum_X_spikes) : 
@@ -372,7 +385,7 @@ class TwoComp_passive(ThresholdModel) :
         X_etaA = self.eta_A.convolution_Spiketrain_basisfunctions(tr.getSpikeTimes() + self.Tref, tr.T, tr.dt)
         
         # ... and concatenate them
-        X = np.concatenate( (X_ks[selection,:], X_eds[selection,:], X_etaA[selection,:]), axis=1 )
+        X = np.concatenate( (np.ones((T_l_selection,1)), X_ks[selection,:], X_eds[selection,:], X_etaA[selection,:]), axis=1 )
   
         # Precompute other quantities
         X_spikes = X[spks_i_afterselection,:]
@@ -398,11 +411,10 @@ class TwoComp_passive(ThresholdModel) :
         
         dt = self.dt/1000.0     # put dt in units of seconds (to be consistent with lambda_0)
         
-        X_spikestheta    = np.dot(X_spikes,theta)
         Xtheta           = np.dot(X,theta)
         expXtheta        = np.exp(Xtheta)
         
-        G = sum_X_spikes - self.lambda0*dt*np.dot(np.transpose(X), expXtheta)
+        G = -(sum_X_spikes - self.lambda0*dt*np.dot(np.transpose(X), expXtheta))
         
         return G
  
@@ -439,7 +451,8 @@ class TwoComp_passive(ThresholdModel) :
         plt.plot(k_s_support, k_s, color='red', lw=2)
         plt.plot([k_s_support[0], k_s_support[-1]], [0,0], ls=':', color='black', lw=2)
             
-        plt.xlim([k_s_support[0] - np.size(k_s)*0.01, k_s_support[-1] + np.size(k_s)*0.01])
+        #plt.xlim([k_s_support[0] - np.size(k_s)*0.01, k_s_support[-1] + np.size(k_s)*0.01])
+        plt.xlim(0,100)
         plt.ylim([np.min(k_s)*1.1, np.max(k_s)*1.1])
         plt.xlabel("Time (ms)")
         plt.ylabel("k_s (mV)")
@@ -518,6 +531,7 @@ class TwoComp_passive(ThresholdModel) :
         print ("TwoComp_passive model parameters:")
         print ("-------------------------")
         print ("Tref (ms):\t%0.3f"   % (self.Tref))
+        print ("E0 (mV): "+str(self.E0))
         print ("K_s, Amplitude of short time constant("+str(self.k_s.getTimeConstants()['tau0'])+" ms):\t%0.3f" %(self.k_s.getCoefficients()[0]))
         print ("K_s, Amplitude of medium time constant("+str(self.k_s.getTimeConstants()['tau1'])+" ms):\t%0.3f" %(self.k_s.getCoefficients()[1]))
         print ("K_s, Amplitude of long time constant("+str(self.k_s.getTimeConstants()['tau2'])+" ms):\t%0.3f" %(self.k_s.getCoefficients()[2]))

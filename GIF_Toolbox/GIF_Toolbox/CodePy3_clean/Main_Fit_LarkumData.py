@@ -47,6 +47,7 @@ myExp.addTrainingSetTrace_TwoComp(trainVs, 10**-3, trainIs , 10**-12, trainVd, 1
 testData = io.loadmat('/home/andrej/Documents/Code/Larkum1to5/Larkum'+str(datasetIndex)+'/IVTest.mat')
 testTraces = testData['IVTest'][0][0]
 
+
 # recording timestep: 0.1 ms
 # testTraces.dtype.names:
 # Out[26]: ('Is', 'Vs', 'Id', 'Vd', 'timestep', 'spks', 'L', 'spktr')
@@ -101,6 +102,8 @@ myGIF.e_ds.setFilter_Coefficients(initial_threeExpos_coeffs)
 # detect Spikes
 myExp.detectSpikes_cython()
 
+
+
 # To visualize the training set and the ROI call again
 #myExp.plotTrainingSet()
 
@@ -108,12 +111,49 @@ myExp.detectSpikes_cython()
 myGIF.fit(myExp)
 
 
+#%% look at simulations with fitted parameters
+'''
+trial_length = 300000
+tr = myExp.trainingset_traces[0]
+I = tr.I[0:trial_length]
+Id = tr.I_d[0:trial_length]
+
+(time, eta_A_sum, spks, filtered_currents, p_dontspike) = myGIF.simulate(I, Id)
+vsim = filtered_currents + eta_A_sum
+
+myGIF.plotParameters()
+
+nsubplots = 4
+plt.figure()
+plt.subplot(nsubplots,1,1)
+plt.plot(time, vsim)
+vmin = np.min(vsim)
+vmax = np.max(vsim)
+plt.vlines(spks, vmin, vmax)
+plt.title('Simulated activation level')
+
+plt.subplot(nsubplots,1,2)
+plt.plot(time, tr.V[0:trial_length])
+plt.title('Real voltage trace')
+
+plt.subplot(nsubplots,1,3)
+plt.plot(time, p_dontspike)
+plt.title('Prob. to not spike')
+
+plt.subplot(nsubplots,1,4)
+plt.plot(time, I, label='somatic input', hold=True)
+plt.plot(time, Id, label='dendritic input')
+plt.legend()
+plt.title('Input currents')
+'''
+#%% 
 # Plot the model parameters
 #myGIF.printParameters()
-myGIF.plotParameters()
-myGIF.plotParametersWithBasisfunctions()
+#myGIF.plotParameters()
+#myGIF.plotParametersWithBasisfunctions()
 
 #tr = myExp.trainingset_traces[0]
+
 #(time, eta_a, spks, filtered_currents) = myGIF.simulate(tr.I, tr.I_d)
 
 

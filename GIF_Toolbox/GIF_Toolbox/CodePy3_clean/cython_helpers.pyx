@@ -84,7 +84,7 @@ def c_simulate(int p_T, float p_dt, float p_gl, float p_C, float p_El, float p_V
     
     return V, eta_sum, gamma_sum, spks
     
-def c_simulate_twoComp (int p_T, float p_dt, int p_Tref_ind, float p_lambda0, int p_eta_A_l, np.ndarray[DTYPE_t] p_eta_A,
+def c_simulate_twoComp (int p_T, float p_dt, int p_Tref_ind, float p_lambda0, float p_E0, int p_eta_A_l, np.ndarray[DTYPE_t] p_eta_A,
                         np.ndarray[DTYPE_t] eta_A_sum, np.ndarray[DTYPE_t] filtered_currents, np.ndarray[DTYPE_t] spks):
     
     cdef int t
@@ -95,7 +95,7 @@ def c_simulate_twoComp (int p_T, float p_dt, int p_Tref_ind, float p_lambda0, in
     t = 0
     while t < (p_T-1):        
         
-        temp_lambda = p_lambda0* exp(filtered_currents[t] + eta_A_sum[t])
+        temp_lambda = p_lambda0* exp(p_E0 + filtered_currents[t] + eta_A_sum[t])
         p_dontspike = exp(-temp_lambda*(p_dt/1000.0)) 
         
         if (r[t] > p_dontspike):
