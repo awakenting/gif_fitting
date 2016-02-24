@@ -158,6 +158,57 @@ def c_integrate_w(int p_T, float p_dt, int p_tau_w, float p_Ew, np.ndarray[DTYPE
         
     return Z
     
+def c_simulate_w(int p_T, float p_dt, float p_gl, float p_C, float p_El, float p_Ew, float p_tau_w,\
+                 float p_a_w, float p_Vr, float p_Tref, float p_Vt_star, float p_DV, float p_lambda0,\
+                 np.ndarray[DTYPE_t] V, np.ndarray[DTYPE_t] I, np.ndarray[DTYPE_t] W,\
+                 np.ndarray[DTYPE_t] p_eta, int p_eta_l, np.ndarray[DTYPE_t] eta_sum,\
+                 np.ndarray[DTYPE_t] p_gamma, np.ndarray[DTYPE_t] gamma_sum, int p_gamma_l,\
+                 np.ndarray[DTYPE_t] spks):
+    
+    cdef int Tref_ind = int(p_Tref/p_dt)
+    cdef float p_dontspike, temp_lambda
+    cdef int t, j
+    
+    cdef np.ndarray[FTYPE_t] r= np.random.random_sample(p_T)
+#    cdef float maxint = float(sys.maxsize)
+    
+    t = 0
+    while t < (p_T-1):
+        # Integrate subthreshold adaptation current
+        W[t+1] = W[t] + p_dt/p_tau_w*( p_a_w*(V[t] - p_Ew) - W[t])
+        ## INTEGRATE VOLTAGE
+        V[t+1] = V[t] + p_dt/p_C*(-p_gl*(V[t] - p_El) + I[t] - eta_sum[t]  - W[t])
+        
+        ## COMPUTE PROBABILITY OF EMITTING ACTION POTENTIAL
+        temp_lambda = p_lambda0 * exp( (V[t+1] - p_Vt_star - gamma_sum[t]) / p_DV )
+        # since lambda0 is in Hz, dt must also be in Hz (this is why dt/1000.0):
+        p_dontspike = exp(-temp_lambda*(p_dt/1000.0))                                  
+        
+        ## PRODUCE SPIKE STOCHASTICALLY
+        #r = rand()/rand_max;
+        #r = random.randint(0,maxint)/maxint
+        if (r[t] > p_dontspike):
+                            
+            if (t+1 < p_T-1):
+                spks[t+1] = 1.0
+            
+            t = t + Tref_ind
+            
+            if (t+1 < p_T-1):
+                V[t+1] = p_Vr
+            
+            
+            ## UPDATE ADAPTATION PROCESSES     
+            for j in range(p_eta_l):
+                eta_sum[t+1+j] += p_eta[j]
+            
+            for j in range(p_gamma_l):
+                gamma_sum[t+1+j] += p_gamma[j]
+        
+        t += 1
+    
+    return V, eta_sum, gamma_sum, spks
+    
 def c_simulateDeterministic_forceSpikes_w(int p_T, float p_dt, float p_gl, float p_C, float p_El,
                                           float p_Ew, int p_tau_w, float p_a_w, float p_Vr,\
                                           float p_Tref, np.ndarray[DTYPE_t] V,\

@@ -79,17 +79,16 @@ def run(animal_number, root_path, unwanted_sessions):
     
     myGIF.gamma = Filter_Rect_LogSpaced()
     myGIF.gamma.setMetaParameters(length=500.0, binsize_lb=5.0, binsize_ub=1000.0, slope=5.0)
-    
-    #myGIF.tau_w = 
-    
+        
     # detect Spikes
     myExp.detectSpikes_cython()
     
-    # Perform the fit
-    tau_w_values = [50]
-    for tau_w in tau_w_values:
-        myGIF.tau_w = tau_w        
-        myGIF.fit(myExp, DT_beforeSpike=5.0)
+    # set values for tau_w
+    tau_w_values = np.arange(10,101,step=10)
+    myGIF.set_tau_w_values(tau_w_values)
+
+    # Perform the fit    
+    myGIF.fit(myExp, DT_beforeSpike=5.0)
     
     
     #%%

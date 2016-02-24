@@ -20,11 +20,11 @@ unwanted_sessions = ['APThreshold', 'APWaveform']
 root_path = '/home/andrej/Documents/Code/BlueBrain/article_4_data/grouped_ephys/'
 figure_path = '/home/andrej/Documents/Code/BlueBrain/results/figures/fits/subadapt_constrained/'
 
-num_of_animals = 10
+num_of_animals = 32
 md_values = np.zeros(num_of_animals)
 gifs, expms, predicts = [], [], []
 
-do_ensemble_plot = False
+do_ensemble_plot = True
 for nr in range(num_of_animals):
 #for nr in [4]:
     fitted = fit_bluebrain_subadapt_constrained.run(nr, root_path, unwanted_sessions)
@@ -286,7 +286,7 @@ if do_ensemble_plot:
     plt.ylabel('Membrane filter (MOhm/ms)')
     plt.title('Membrane filter kappa for all fits')
     
-    plt.savefig('/home/andrej/Documents/Code/BlueBrain/results/figures/fits/subadapt/kappas_fit.png', dpi=120)
+    plt.savefig(figure_path + 'kappas_fit.png', dpi=120)
     plt.close(fig)
     
     
@@ -305,7 +305,7 @@ if do_ensemble_plot:
     plt.ylabel('Eta [nA]')
     plt.title('Eta for all fits')
     
-    plt.savefig('/home/andrej/Documents/Code/BlueBrain/results/figures/fits/subadapt/etas_fit.png', dpi=120)
+    plt.savefig(figure_path + 'etas_fit.png', dpi=120)
     plt.close(fig)
     
     
@@ -324,7 +324,7 @@ if do_ensemble_plot:
     plt.ylabel('Gamma [mV]')
     plt.title('Gamma for all fits')
         
-    plt.savefig('/home/andrej/Documents/Code/BlueBrain/results/figures/fits/subadapt/gammas_fit.png', dpi=120)
+    plt.savefig(figure_path + 'gammas_fit.png', dpi=120)
     plt.close(fig)
 
 
