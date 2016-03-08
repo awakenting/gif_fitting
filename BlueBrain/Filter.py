@@ -33,6 +33,7 @@ class Filter :
     
         # Results of multiexponential fit
         self.expfit_falg     = False           # True if the exponential fit has been performed
+        self.expfit_dim      = 1
         self.b0              = []                                
         self.tau0            = []
     
@@ -333,6 +334,63 @@ class Filter :
         self.tau0        = taus_opt 
                 
         return (t, F_exp)
+        
+    def fit_sumOfExpos_optimize_dim(self, maxdim, bs=[], taus=[], ROI=None, dt=0.1, method='bruteforce') :
+        
+        """
+        Fit the interpolated filter with a sum of exponentails: F_fit(t) = sum_j^N b_j exp(-t/tau_j)
+        dim : number N of exponentials
+        bs  : list with initial conditions for amplitudes b_j
+        taus: ms, list with initial conditions for timescales tau_j
+        ROI :[lb, ub], in ms (consistent with units of dt). Specify lowerbound and upperbound (in time) where fit is perfomred.
+        dt  : the filer is interpolated and fitted using discretization steps defined in dt.
+        """
+        
+        temp_bs = []
+        temp_taus = []
+        temp_sse = np.zeros((maxdim,1))
+        
+        if method == 'bruteforce':
+            # check if there are intial values for each value of dim
+            if (type(bs) is not list) or (not len(bs) == maxdim):
+                bs = [np.ones((dim,1)) for dim in np.arange(1,maxdim+1)]
+            if (type(taus) is not list) or (not len(taus) == maxdim):
+                taus = [np.ones((dim,1)) for dim in np.arange(1,maxdim+1)]
+            
+            for dim in np.arange(1,maxdim+1):
+                self.fitSumOfExponentials(dim,bs[dim-1],taus[dim-1],ROI,dt)
+                
+                temp_bs.append(self.b0)
+                temp_taus.append(self.tau0)
+                temp_sse[dim-1] = self.get_expfit_sse(dim,dt)
+                
+            opt_ind = np.argmin(temp_sse)
+            non_opt = ~(np.arange(len(temp_sse))==opt_ind)
+            
+            # if a lower dimension than the optimal is only worse by less than
+            # occams_tolerance percent take it as optimal solution
+            
+            occams_tolerance = 1 # in percent of the best SSE
+            # relative difference to best SSE
+            sse_relative = (temp_sse-temp_sse[opt_ind])/temp_sse[opt_ind]
+            # relative differences that are below the tolerance
+            sse_occam = sse_relative[non_opt] < occams_tolerance
+            # indeces of those below tolerance
+            sse_occam_ind = np.flatnonzero(sse_occam)
+            if any(sse_occam) and sse_occam_ind.min() < opt_ind:
+                opt_ind = sse_occam_ind.min()
+                
+            self.b0         = temp_bs[opt_ind]
+            self.tau0       = temp_taus[opt_ind]
+            self.expfit_dim = opt_ind + 1
+            
+        
+        (t, F) = self.getInterpolatedFilter(dt)
+        F_exp = self.multiExpEval(t,self.b0,self.tau0)
+        
+        return (t, F_exp)
+            
+            
         
     def get_expfit_sse(self, dim, dt=0.1):
         if self.expfit_falg:

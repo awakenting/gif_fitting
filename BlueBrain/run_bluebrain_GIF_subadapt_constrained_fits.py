@@ -18,12 +18,13 @@ import numpy as np
 from scipy.signal import fftconvolve
 
 unwanted_sessions = ['APThreshold', 'APWaveform']
-root_path = '/home/andrej/Documents/Code/BlueBrain/article_4_data/grouped_ephys/'
-figure_path = '/home/andrej/Documents/Code/BlueBrain/results/figures/fits/subadapt_constrained/'
-model_path = '/home/andrej/Documents/Code/BlueBrain/results/models/subadapt_constrained/'
+root_path = './article_4_data/grouped_ephys/'
+figure_path = './results/figures/fits/subadapt_constrained/'
+model_path = './results/models/subadapt_constrained/'
 if not os.path.exists(model_path):
     os.makedirs(model_path)
 
+#%%
 num_of_animals = 32
 md_values = np.zeros(num_of_animals)
 gifs, expms, predicts = [], [], []
