@@ -334,6 +334,15 @@ class Filter :
                 
         return (t, F_exp)
         
+    def get_expfit_sse(self, dim, dt=0.1):
+        if self.expfit_falg:
+            (t, F) = self.getInterpolatedFilter(dt)
+            p = np.concatenate((self.b0,self.tau0))
+            resids = self.multiExpResiduals(p,t,F,dim)
+        else:
+            print('Exponential fit has not been performed yet.')
+        
+        return np.sum(resids**2)
         
     @classmethod
     def multiExpResiduals(cls, p, x, y, d):
