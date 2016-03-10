@@ -37,11 +37,21 @@ for gifnr,gif in enumerate(gifs):
     if not gif.gamma.expfit_falg:
         (t_gamma, F_exp_gamma) = gif.gamma.fit_sumOfExpos_optimize_dim(maxdim=3, dt=gif.dt)
         
-#%% fit exponentials to filters
-#for gifnr,gif in enumerate(gifs):
-#    print('Fitting exponentials for model ' + str(gifnr) + 'of ' + str(len(gifs)), end='\r')
-#    (t_eta, F_exp_eta) = gif.eta.fit_sumOfExpos_optimize_dim(maxdim=3, ROI=[0,300], dt=gif.dt)
-#    (t_gamma, F_exp_gamma) = gif.gamma.fit_sumOfExpos_optimize_dim(maxdim=3, ROI=[0,300], dt=gif.dt)
+#%% fit exponentials to eta
+eta_taus = [np.array([[5]]),np.array([[5],[30]]),np.array([[5],[75],[30]])]
+
+for gifnr,gif in enumerate(gifs):
+    print('Fitting exponentials for model ' + str(gifnr) + ' of ' + str(len(gifs)), end='\r')
+    (t_eta, F_exp_eta) = gif.eta.fit_sumOfExpos_optimize_dim(maxdim=3, taus=eta_taus, ROI=[0,300], dt=gif.dt)
+    
+#%% fit exponentials to gamma
+gamma_taus = [np.array([[10]]),np.array([[10],[30]]),np.array([[10],[30],[75]])]
+gamma_bs = [np.array([[100]]),np.array([[100],[-50]]),np.array([[100],[-50],[-30]])]
+
+for gifnr,gif in enumerate(gifs):
+    print('Fitting exponentials for model ' + str(gifnr) + ' of ' + str(len(gifs)), end='\r')
+    (t_gamma, F_exp_gamma) = gif.gamma.fit_sumOfExpos_optimize_dim(maxdim=3, 
+                            bs=gamma_bs, taus=gamma_taus, ROI=[0,300], dt=gif.dt)
     
 #%% save models with expo fit
 for gif in gifs:
@@ -163,7 +173,7 @@ plt.suptitle('Summary of exponential fits',fontsize=24)
 #==============================================================================
     
 if not os.path.exists(figure_path):
-    os.mkdir(figure_path)
+    os.makedirs(figure_path)
     
 plt.savefig(figure_path + '_expofit_stats.png', dpi=120)
 plt.close(fig)
@@ -229,7 +239,7 @@ for gifnr,gif in enumerate(gifs):
 #==============================================================================
     
 if not os.path.exists(figure_path):
-    os.mkdir(figure_path)
+    os.makedirs(figure_path)
     
 plt.savefig(figure_path + 'ensemble_expofits.png', dpi=120)
 #plt.close(fig)
@@ -267,7 +277,7 @@ plt.suptitle('Exponential fits for gamma', fontsize=24)
 if not os.path.exists(figure_path):
     os.mkdir(figure_path)
     
-plt.savefig(figure_path + 'single_expofits_eta.png', dpi=120)
+plt.savefig(figure_path + 'single_expofits_gamma.png', dpi=120)
 plt.close(fig)
 
 
@@ -302,6 +312,6 @@ plt.suptitle('Exponential fits for eta', fontsize=24)
 if not os.path.exists(figure_path):
     os.mkdir(figure_path)
     
-plt.savefig(figure_path + 'single_expofits_gamma.png', dpi=120)
+plt.savefig(figure_path + 'single_expofits_eta.png', dpi=120)
 plt.close(fig)
 
