@@ -295,7 +295,7 @@ class Filter :
     #########################################################
     # functions used to perform exp fit
     #########################################################
-    def fitSumOfExponentials(self, dim, bs, taus, ROI=None, dt=0.1) :
+    def fitSumOfExponentials(self, dim, bs, taus, ROI=None, dt=0.1, fixed_taus=False) :
         
         """
         Fit the interpolated filter with a sum of exponentails: F_fit(t) = sum_j^N b_j exp(-t/tau_j)
@@ -318,24 +318,42 @@ class Filter :
             
             t_fit = t[ lb : ub ]
             F_fit = F[ lb : ub ]    
+
+        
+        if fixed_taus:
+            p0 = bs
             
-        p0 = np.concatenate((bs,taus))
-        
-        plsq = leastsq(Filter.multiExpResiduals, p0, args=(t_fit,F_fit,dim), maxfev=100000,ftol=0.00000001)
-        
-        p_opt = plsq[0]
-        bs_opt = p_opt[:dim]
-        taus_opt = p_opt[dim:]
-        
-        F_exp = Filter.multiExpEval(t, bs_opt, taus_opt)
-        
-        self.expfit_falg = True
-        self.b0          = bs_opt 
-        self.tau0        = taus_opt 
+            plsq = leastsq(Filter.multiExpResiduals_fixed_taus, p0, args=(t_fit,F_fit,dim,taus),
+                           maxfev=100000,ftol=0.00000001)
+            
+            bs_opt = plsq[0]
+            
+            F_exp = Filter.multiExpEval(t, bs_opt, taus)
+            
+            self.expfit_falg = True
+            self.b0          = np.reshape(bs_opt,(dim,1))
+            self.tau0        = taus
+            
+        else:
+            p0 = np.concatenate((bs,taus))
+            
+            plsq = leastsq(Filter.multiExpResiduals, p0, args=(t_fit,F_fit,dim), maxfev=100000,
+                           ftol=0.00000001)
+            
+            p_opt = plsq[0]
+            bs_opt = p_opt[:dim]
+            taus_opt = p_opt[dim:]
+            
+            F_exp = Filter.multiExpEval(t, bs_opt, taus_opt)
+            
+            self.expfit_falg = True
+            self.b0          = bs_opt 
+            self.tau0        = taus_opt
                 
         return (t, F_exp)
         
-    def fit_sumOfExpos_optimize_dim(self, maxdim, bs=[], taus=[], ROI=None, dt=0.1, method='bruteforce') :
+    def fit_sumOfExpos_optimize_dim(self, maxdim, bs=[], taus=[], ROI=None, dt=0.1,
+                                    fixed_taus=False, method='bruteforce') :
         
         """
         Fit the interpolated filter with a sum of exponentails: F_fit(t) = sum_j^N b_j exp(-t/tau_j)
@@ -357,12 +375,20 @@ class Filter :
             if (type(taus) is not list) or (not len(taus) == maxdim):
                 taus = [np.ones((dim,1)) for dim in np.arange(1,maxdim+1)]
             
-            for dim in np.arange(1,maxdim+1):
-                self.fitSumOfExponentials(dim,bs[dim-1],taus[dim-1],ROI,dt)
-                
-                temp_bs.append(self.b0)
-                temp_taus.append(self.tau0)
-                temp_sse[dim-1] = self.get_expfit_sse(dim,dt)
+            if fixed_taus:
+                for dim in np.arange(1,maxdim+1):
+                    self.fitSumOfExponentials(dim,bs[dim-1],taus[dim-1],ROI,dt,fixed_taus=True)
+                    
+                    temp_bs.append(self.b0)
+                    temp_taus.append(self.tau0)
+                    temp_sse[dim-1] = self.get_expfit_sse(dim,dt)
+            else:
+                for dim in np.arange(1,maxdim+1):
+                    self.fitSumOfExponentials(dim,bs[dim-1],taus[dim-1],ROI,dt)
+                    
+                    temp_bs.append(self.b0)
+                    temp_taus.append(self.tau0)
+                    temp_sse[dim-1] = self.get_expfit_sse(dim,dt)                
                 
             opt_ind = np.argmin(temp_sse)
             non_opt = ~(np.arange(len(temp_sse))==opt_ind)
@@ -389,9 +415,7 @@ class Filter :
         F_exp = self.multiExpEval(t,self.b0,self.tau0)
         
         return (t, F_exp)
-            
-            
-        
+                    
     def get_expfit_sse(self, dim, dt=0.1):
         if self.expfit_falg:
             (t, F) = self.getInterpolatedFilter(dt)
@@ -406,6 +430,12 @@ class Filter :
     def multiExpResiduals(cls, p, x, y, d):
         bs = p[0:d]
         taus = p[d:2*d]
+            
+        return (y - Filter.multiExpEval(x, bs, taus))
+        
+    @classmethod
+    def multiExpResiduals_fixed_taus(cls, p, x, y, d, taus):
+        bs = p[0:d]
             
         return (y - Filter.multiExpEval(x, bs, taus)) 
     
