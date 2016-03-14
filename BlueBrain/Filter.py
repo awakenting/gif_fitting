@@ -3,7 +3,7 @@ import numpy as np
 import abc
 
 import copy
-
+import itertools
 import Tools
 
 from scipy.signal import fftconvolve
@@ -36,6 +36,8 @@ class Filter :
         self.expfit_dim      = 1
         self.b0              = []                                
         self.tau0            = []
+        self.tau_ranges      = []
+        self.tau_sses        = []
     
 
     ######################################################################
@@ -333,6 +335,7 @@ class Filter :
             self.expfit_falg = True
             self.b0          = np.reshape(bs_opt,(dim,1))
             self.tau0        = taus
+            self.expfit_dim  = len(taus)
             
         else:
             p0 = np.concatenate((bs,taus))
@@ -352,7 +355,7 @@ class Filter :
                 
         return (t, F_exp)
         
-    def fit_sumOfExpos_optimize_dim(self, maxdim, bs=[], taus=[], ROI=None, dt=0.1,
+    def fit_sumOfExpos_optimize_dim(self, maxdim, bs, tausets, ROI=None, dt=0.1,
                                     fixed_taus=False, method='bruteforce') :
         
         """
@@ -366,31 +369,27 @@ class Filter :
         
         temp_bs = []
         temp_taus = []
-        temp_sse = np.zeros((maxdim,1))
+        temp_sse = np.zeros((len(tausets),1))
         
         if method == 'bruteforce':
-            # check if there are intial values for each value of dim
-            if (type(bs) is not list) or (not len(bs) == maxdim):
-                bs = [np.ones((dim,1)) for dim in np.arange(1,maxdim+1)]
-            if (type(taus) is not list) or (not len(taus) == maxdim):
-                taus = [np.ones((dim,1)) for dim in np.arange(1,maxdim+1)]
             
             if fixed_taus:
-                for dim in np.arange(1,maxdim+1):
-                    self.fitSumOfExponentials(dim,bs[dim-1],taus[dim-1],ROI,dt,fixed_taus=True)
+                for tauset_nr, tauset in enumerate(tausets):
+                    self.fitSumOfExponentials(dim=len(tauset), bs=bs[tauset_nr], taus=tauset, ROI=ROI, dt=dt, fixed_taus=True)
                     
                     temp_bs.append(self.b0)
                     temp_taus.append(self.tau0)
-                    temp_sse[dim-1] = self.get_expfit_sse(dim,dt)
+                    temp_sse[tauset_nr] = self.get_expfit_sse(dim=len(tauset),dt=dt)
             else:
                 for dim in np.arange(1,maxdim+1):
-                    self.fitSumOfExponentials(dim,bs[dim-1],taus[dim-1],ROI,dt)
+                    self.fitSumOfExponentials(dim,bs[dim-1],tausets[dim-1],ROI,dt)
                     
                     temp_bs.append(self.b0)
                     temp_taus.append(self.tau0)
                     temp_sse[dim-1] = self.get_expfit_sse(dim,dt)                
                 
             opt_ind = np.argmin(temp_sse)
+            opt_dim = len(temp_sse[opt_ind])
             non_opt = ~(np.arange(len(temp_sse))==opt_ind)
             
             # if a lower dimension than the optimal is only worse by less than
@@ -403,19 +402,69 @@ class Filter :
             sse_occam = sse_relative[non_opt] < occams_tolerance
             # indeces of those below tolerance
             sse_occam_ind = np.flatnonzero(sse_occam)
-            if any(sse_occam) and sse_occam_ind.min() < opt_ind:
-                opt_ind = sse_occam_ind.min()
+            
+            if any(sse_occam):
+                for sse_idx in sse_occam_ind:
+                    if len(temp_taus[sse_idx]) < opt_dim:
+                        opt_ind = sse_idx
+                        opt_dim = len(temp_taus[opt_ind])
                 
             self.b0         = temp_bs[opt_ind]
             self.tau0       = temp_taus[opt_ind]
-            self.expfit_dim = opt_ind + 1
+            self.expfit_dim = opt_dim
             
         
         (t, F) = self.getInterpolatedFilter(dt)
         F_exp = self.multiExpEval(t,self.b0,self.tau0)
         
-        return (t, F_exp)
+        return (temp_taus[opt_ind], opt_dim)
                     
+    def expfit_tau_gridsearch(self, tau_ranges, ROI=[0,300], dt=0.1):
+        tau_sses = np.zeros(([len(crange) for crange in tau_ranges]))
+        tau_opt_dims = np.zeros(([len(crange) for crange in tau_ranges]))
+        tau_opt_sets = []
+        for tau_range_idx in np.arange(tau_sses.size):
+            
+            # set up list with arrays containing the combinations of the 
+            # current tau values
+            tau_range_indeces = np.unravel_index(tau_range_idx,tau_sses.shape)
+            tau_range_indeces_list = list(tau_range_indeces)
+            maxdim = len(tau_ranges)
+            tau_values = np.array([tau_ranges[cdim][tau_range_indeces_list[cdim]] for cdim in np.arange(maxdim)])
+            # for dim=1 (only one exponential, only the shortest is taken) 
+            tau_inits =[np.reshape(tau_values[0],(1,1))]
+            b_inits = [np.ones((1,1))]
+            if maxdim > 2:
+                for cdim in np.arange(2,maxdim):
+                    tau_combs = list(itertools.combinations(np.arange(maxdim),cdim))
+                    tausets = [tau_values[list(tau_comb)] for tau_comb in tau_combs]
+                    tausets_reshaped = [np.reshape(tauset, newshape=(cdim,1)) for tauset in tausets]
+                    tau_inits.extend(tausets_reshaped)
+                    b_inits.extend([np.ones(tauset.shape) for tauset in tausets_reshaped])
+            # for dim=maxdim it doesn't make sense to take the combinations
+            # because the order doesn't matter for the fit
+            tau_inits.append(np.reshape(tau_values,(len(tau_values),1)))
+            b_inits.append(np.ones((len(tau_values),1)))
+            # actual expfit
+            (tau_set_opt, opt_dim) = self.fit_sumOfExpos_optimize_dim(maxdim=len(tau_ranges), bs=b_inits,
+                                     tausets=tau_inits, ROI=ROI, dt=dt, fixed_taus=True)
+            tau_sses[tau_range_indeces] = self.get_expfit_sse(dim=self.expfit_dim, dt=dt)
+            tau_opt_dims[tau_range_indeces] = opt_dim
+            tau_opt_sets.append(tau_set_opt)
+                
+        tau_opt_idx = np.unravel_index(np.argmin(tau_sses),tau_sses.shape)
+        tau_opt = tau_opt_sets[np.argmin(tau_sses)]
+        tau_opt = np.reshape(np.array(tau_opt),(len(tau_opt),1))
+        tau_dim = len(tau_opt)
+        
+        (t_gamma, F_exp_gamma) = self.fitSumOfExponentials(tau_dim,np.ones((tau_dim,1)),tau_opt,ROI,dt,fixed_taus=True)
+              
+        self.tau_ranges = tau_ranges
+        self.tau_sses   = tau_sses
+        self.expfit_dim = tau_dim
+        
+        return tau_sses, tau_opt
+        
     def get_expfit_sse(self, dim, dt=0.1):
         if self.expfit_falg:
             (t, F) = self.getInterpolatedFilter(dt)
