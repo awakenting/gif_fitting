@@ -198,7 +198,7 @@ class Experiment_auto_read_T :
     ############################################################################################
     def save(self, path):
         
-        filename = path + "/Experiment_" + self.name + '.pkl'
+        filename = path + "Experiment_" + self.name + '.pkl'
         self.save_path = filename
         print ("Saving: " + filename + "..."        )
         f = open(filename,'wb')

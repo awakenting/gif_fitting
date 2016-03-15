@@ -18,8 +18,20 @@ import numpy as np
 from scipy.signal import fftconvolve
 
 unwanted_sessions = ['APThreshold', 'APWaveform']
-root_path = '/home/andrej/Documents/Code/BlueBrain/article_4_data/grouped_ephys/'
-figure_path = '/home/andrej/Documents/Code/BlueBrain/results/figures/fits/gif_rect_basis/'
+root_path = './article_4_data/grouped_ephys/'
+figure_path = './results/figures/fits/gif_rect_basis/'
+model_path = './results/models/basic/'
+expm_path = './results/experiments/'
+if not os.path.exists(model_path):
+    os.makedirs(model_path)
+if not os.path.exists(expm_path):
+    os.makedirs(expm_path)
+
+#%% 
+
+do_ensemble_plot = True
+do_single_plot = True
+save_gifs = True
 
 num_of_animals = 32
 md_values = np.zeros(num_of_animals)
@@ -31,6 +43,14 @@ for nr in range(num_of_animals):
         continue
     else:
         (gif,expm,md,predict) = fitted
+        
+        expm.save(expm_path)
+        gif.expm_file = expm.save_path
+        gif.pred = predict
+    
+    if save_gifs:
+        gif.save_path = model_path + str(expm.name)       
+        gif.save(gif.save_path)
     
     md_values[nr] = md
     gifs.append(gif)

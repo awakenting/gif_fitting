@@ -24,6 +24,8 @@ model_path = './results/models/subadapt_constrained/'
 expm_path = './results/experiments/'
 if not os.path.exists(model_path):
     os.makedirs(model_path)
+if not os.path.exists(expm_path):
+    os.makedirs(expm_path)
 
 #%%
 num_of_animals = 2

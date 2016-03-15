@@ -59,7 +59,11 @@ class GIF(ThresholdModel) :
         
         self.avg_spike_shape = 0
         self.avg_spike_shape_support = 0
+
+        self.expm_file      = []              # filename of the experiment object, with the data that was fitted
+        self.pred           = []              # prediction object with simulated traces and spike trains
         
+        self.var_explained  = 0
         
         # Initialize the spike-triggered current eta with an exponential function        
         
@@ -371,6 +375,7 @@ class GIF(ThresholdModel) :
         # Compute percentage of variance explained on dV/dt
         
         var_explained_dV = 1.0 - np.mean((Y - np.dot(X,b))**2)/np.var(Y)
+        self.var_explained = var_explained_dV
         print ("Percentage of variance explained (on dV/dt): %0.2f" % (var_explained_dV*100.0))
 
         
