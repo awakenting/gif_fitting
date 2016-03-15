@@ -26,7 +26,7 @@ animal_dirs = sorted(os.listdir(root_path))
 gifs =[]
 for animalnr in range(len(animal_dirs)):
     if os.path.exists(model_path + 'Animal_' + animal_dirs[animalnr]):
-        gifs.append(GIF_subadapt_constrained.load(model_path + 'Animal_' + animal_dirs[animalnr]))
+        gifs.append(GIF_subadapt_constrained.load(model_path + 'Animal_' + animal_dirs[animalnr] + '_restricted_tau_w'))
 
 #%% fit exponentials to filters
 for gifnr,gif in enumerate(gifs):
@@ -130,9 +130,6 @@ gamma_taus = np.zeros((len(gifs),3))
 gamma_sses = np.zeros((len(gifs),1))
 gamma_dims = np.zeros((len(gifs),1))
 
-a_ws = np.zeros((len(gifs),1))
-w_taus = np.zeros((len(gifs),1))
-
 sses_shape = list(gifs[0].eta.tau_sses.shape)
 sses_shape.append(len(gifs))
 single_eta_tau_sses = np.zeros(sses_shape)
@@ -153,11 +150,15 @@ for gifnr,gif in enumerate(gifs):
     gamma_sses[gifnr]   = gif.gamma.get_expfit_sse(dim=len(gif.gamma.b0),dt=gif.dt)
     gamma_dims [gifnr]  = gif.gamma.expfit_dim
     
-    a_ws[gifnr] = gif.a_w
-    w_taus[gifnr] = gif.tau_w_opt
-    
     single_eta_tau_sses[:,:,:,gifnr] = gif.eta.tau_sses
     single_gamma_tau_sses[:,:,:,gifnr] = gif.gamma.tau_sses
+    
+#%% tau_w and a_w stats 
+a_ws = np.zeros((len(gifs),1))
+w_taus = np.zeros((len(gifs),1))
+for gifnr,gif in enumerate(gifs):
+    a_ws[gifnr] = gif.a_w
+    w_taus[gifnr] = gif.tau_w_opt
     
 #%% find best set of taus with regards to sum error of all models combined
 sum_eta_tau_sses = np.sum(single_eta_tau_sses,axis=3)

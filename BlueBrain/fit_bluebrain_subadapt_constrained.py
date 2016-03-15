@@ -84,7 +84,7 @@ def run(animal_number, root_path, unwanted_sessions):
     myExp.detectSpikes_cython()
     
     # set values for tau_w
-    tau_w_values = np.arange(10,101,step=10)
+    tau_w_values = np.arange(10,301,step=10)
     myGIF.set_tau_w_values(tau_w_values)
 
     # Perform the fit    
