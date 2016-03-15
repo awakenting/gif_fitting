@@ -26,7 +26,7 @@ animal_dirs = sorted(os.listdir(root_path))
 gifs =[]
 for animalnr in range(len(animal_dirs)):
     if os.path.exists(model_path + 'Animal_' + animal_dirs[animalnr]):
-        gifs.append(GIF_subadapt_constrained.load(model_path + 'Animal_' + animal_dirs[animalnr] + '_restricted_tau_w'))
+        gifs.append(GIF_subadapt_constrained.load(model_path + 'Animal_' + animal_dirs[animalnr] + '_large_tau_w'))
 
 #%% fit exponentials to filters
 for gifnr,gif in enumerate(gifs):
@@ -39,8 +39,8 @@ for gifnr,gif in enumerate(gifs):
 #%% do tau grid search for all models
                             
 tau1_range = np.arange(2,11,2)
-tau2_range = np.arange(5,41,5)
-tau3_range = np.arange(150,251,50)
+tau2_range = np.arange(35,61,5)
+tau3_range = np.arange(100,251,50)
 tau_ranges = [tau1_range,tau2_range,tau3_range]
 tau_sses = np.zeros(([len(crange) for crange in tau_ranges]))
 
@@ -68,7 +68,7 @@ else:
             
             setattr(gif,filter_name,filter_obj)
         
-        gif.save(model_path + 'Animal_' + gif.save_path.split('_')[-1] + '_tau_combs')   
+        gif.save(gif.save_path)   
     
 
 #%% inspect sse grid
@@ -264,7 +264,7 @@ plt.suptitle('Summary of exponential fits',fontsize=24)
 if not os.path.exists(figure_path):
     os.makedirs(figure_path)
     
-plt.savefig(figure_path + 'expofit_allTaus_allCombs_stats.png', dpi=120)
+plt.savefig(figure_path + 'expofit_allTaus_largeTauW_stats.png', dpi=120)
 plt.close(fig)
 
 #%% 
@@ -293,8 +293,8 @@ plt.title('a_w histogram')
 
 plt.subplot(gs[2])
 plt.plot(w_taus,a_ws,'.')
-plt.plot([0,110],[0.0,0.0], ':', lw=3, color='black')
-plt.xlim([0,110])
+plt.plot([0,310],[0.0,0.0], ':', lw=3, color='black')
+plt.xlim([0,310])
 plt.ylim([-0.02,0.02])
 plt.xlabel('tau_w [ms]')
 plt.ylabel('a_w')
@@ -303,7 +303,7 @@ plt.title('a_w vs tau_w')
 if not os.path.exists(figure_path):
     os.makedirs(figure_path)
     
-plt.savefig(figure_path + 'w_current_stats.png', dpi=120)
+plt.savefig(figure_path + 'w_current_stats_large_tau.png', dpi=120)
 plt.close(fig)
 
 #%% 
@@ -407,7 +407,7 @@ plt.suptitle('Exponential fits for gamma', fontsize=24)
 if not os.path.exists(figure_path):
     os.mkdir(figure_path)
     
-plt.savefig(figure_path + 'single_expofits_gamma.png', dpi=120)
+plt.savefig(figure_path + 'single_expofits_gamma_large_tau.png', dpi=120)
 plt.close(fig)
 
 
@@ -442,6 +442,6 @@ plt.suptitle('Exponential fits for eta', fontsize=24)
 if not os.path.exists(figure_path):
     os.mkdir(figure_path)
     
-plt.savefig(figure_path + 'single_expofits_eta.png', dpi=120)
+plt.savefig(figure_path + 'single_expofits_eta_large_tau.png', dpi=120)
 plt.close(fig)
 

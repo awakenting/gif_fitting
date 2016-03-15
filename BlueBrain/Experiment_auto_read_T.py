@@ -19,6 +19,7 @@ class Experiment_auto_read_T :
         print ("Create new Experiment")
 
         self.name               = name          # Experiment name
+        self.save_path          = 'default_expm'# relative path to the file storing this experiment
         
         self.dt                 = 0.1           # Sampling (all traces in same experiment must have same sampling)
         self.dt_flag            = False         # True if dt was set already during addTrainingSetTrace
@@ -198,9 +199,9 @@ class Experiment_auto_read_T :
     def save(self, path):
         
         filename = path + "/Experiment_" + self.name + '.pkl'
-        
+        self.save_path = filename
         print ("Saving: " + filename + "..."        )
-        f = open(filename,'w')
+        f = open(filename,'wb')
         pkl.dump(self, f)
         print ("Done!")
         
@@ -210,7 +211,7 @@ class Experiment_auto_read_T :
         
         print ("Load experiment: " + filename + "..."        )
       
-        f = open(filename,'r')
+        f = open(filename,'rb')
         expr = pkl.load(f)
     
         print ("Done!" )

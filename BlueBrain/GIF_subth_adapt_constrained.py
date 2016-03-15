@@ -81,6 +81,9 @@ class GIF_subadapt_constrained(ThresholdModel) :
         self.avg_spike_shape = 0
         self.avg_spike_shape_support = 0
         
+        self.expm_file      = []              # filename of the experiment object, with the data that was fitted
+        self.pred           = []              # prediction object with simulated traces and spike trains
+        
         
         # Initialize the spike-triggered current eta with an exponential function        
         

@@ -8,9 +8,6 @@ import Tools
 import matplotlib.pyplot as plt
 
 
-
-
-
 def run(animal_number, root_path, unwanted_sessions):
     #%%
     ####################################################################################################

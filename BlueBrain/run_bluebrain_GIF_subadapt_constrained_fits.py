@@ -21,11 +21,12 @@ unwanted_sessions = ['APThreshold', 'APWaveform']
 root_path = './article_4_data/grouped_ephys/'
 figure_path = './results/figures/fits/subadapt_constrained_large_tau_w/'
 model_path = './results/models/subadapt_constrained/'
+expm_path = './results/experiments/'
 if not os.path.exists(model_path):
     os.makedirs(model_path)
 
 #%%
-num_of_animals = 32
+num_of_animals = 2
 md_values = np.zeros(num_of_animals)
 gifs, expms, predicts = [], [], []
 
@@ -40,12 +41,17 @@ for nr in range(num_of_animals):
         continue
     else:
         (gif,expm,md,predict) = fitted
+        
+        expm.save(expm_path)
+        gif.expm_file = expm.save_path
+        gif.pred = predict
     
     if save_gifs:
         gif.save_path = model_path + str(expm.name) + '_large_tau_w'        
         gif.save(gif.save_path)
             
     #md_values[nr] = md
+    
     gifs.append(gif)
     expms.append(expm)
     predicts.append(predict)
