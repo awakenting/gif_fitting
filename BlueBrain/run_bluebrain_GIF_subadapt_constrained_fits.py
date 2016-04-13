@@ -19,7 +19,7 @@ from scipy.signal import fftconvolve
 
 unwanted_sessions = ['APThreshold', 'APWaveform']
 root_path = './article_4_data/grouped_ephys/'
-figure_path = './results/figures/fits/subadapt_constrained_large_tau_w/'
+figure_path = './results/figures/fits/subadapt_constrained_tau_w_50ms/'
 model_path = './results/models/subadapt_constrained/'
 expm_path = './results/experiments/'
 if not os.path.exists(model_path):
@@ -28,7 +28,7 @@ if not os.path.exists(expm_path):
     os.makedirs(expm_path)
 
 #%%
-num_of_animals = 2
+num_of_animals = 32
 md_values = np.zeros(num_of_animals)
 gifs, expms, predicts = [], [], []
 
@@ -49,7 +49,7 @@ for nr in range(num_of_animals):
         gif.pred = predict
     
     if save_gifs:
-        gif.save_path = model_path + str(expm.name) + '_large_tau_w'        
+        gif.save_path = model_path + str(expm.name) + '_tau_w_50ms'        
         gif.save(gif.save_path)
             
     #md_values[nr] = md

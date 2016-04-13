@@ -29,12 +29,12 @@ for animalnr in range(len(animal_dirs)):
         gifs.append(GIF_subadapt_constrained.load(model_path + 'Animal_' + animal_dirs[animalnr] + '_large_tau_w'))
 
 #%% fit exponentials to filters
-for gifnr,gif in enumerate(gifs):
-    print('Fitting exponentials for model ' + str(gifnr) + 'of ' + str(len(gifs)), end='\r')
-    if not gif.eta.expfit_falg:
-        (t_eta, F_exp_eta) = gif.eta.fit_sumOfExpos_optimize_dim(maxdim=3, dt=gif.dt)
-    if not gif.gamma.expfit_falg:
-        (t_gamma, F_exp_gamma) = gif.gamma.fit_sumOfExpos_optimize_dim(maxdim=3, dt=gif.dt)
+#for gifnr,gif in enumerate(gifs):
+#    print('Fitting exponentials for model ' + str(gifnr) + 'of ' + str(len(gifs)), end='\r')
+#    if not gif.eta.expfit_falg:
+#        (t_eta, F_exp_eta) = gif.eta.fit_sumOfExpos_optimize_dim(maxdim=3, dt=gif.dt)
+#    if not gif.gamma.expfit_falg:
+#        (t_gamma, F_exp_gamma) = gif.gamma.fit_sumOfExpos_optimize_dim(maxdim=3, dt=gif.dt)
 
 #%% do tau grid search for all models
                             
@@ -105,7 +105,7 @@ def plot_gridsearch_result(tau_sses, tau_ranges, tau_opt, ptitle='default title'
         plt.close(fig)
         
 #%% plot gridsearch result
-plot_gridsearch_result(gifs[0].gamma.tau_sses, gifs[0].gamma.tau_ranges)
+#plot_gridsearch_result(gifs[0].gamma.tau_sses, gifs[0].gamma.tau_ranges)
 
 #%% use optimal tau values for actual fit
 

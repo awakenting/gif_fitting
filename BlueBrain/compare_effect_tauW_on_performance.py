@@ -107,28 +107,34 @@ for gifnr,gif in enumerate(gifs2):
     basic_scores[gifnr] = gif.var_explained*100
     
 basic_scores = basic_scores.squeeze()
+basic_scores_order = np.argsort(basic_scores)
 w_best_scores = np.max(w_tau_scores,axis=1)
-w_improvs = (w_best_scores-basic_scores)/basic_scores*100
+w_best_scores_ordered = w_best_scores[basic_scores_order]
+w_improvs = w_best_scores-basic_scores
+w_taus_ordered = w_taus[basic_scores_order]
+
 
 fig = plt.figure(figsize=(12,12))
 plt.plot(w_taus,w_improvs,'.',MarkerSize=10)
 plt.xlim([0,305])
 plt.ylim([-1,40])
 plt.xlabel('Value of tau_w [ms]')
-plt.ylabel('Relative increase in varExplained [%]')
+plt.ylabel('Increase in varExplained [% points]')
+plt.title('Performance improvement for including w current')
 plt.savefig(figure_path + 'varExp_improv.png', dpi=120)
 plt.close(fig)
 
 fig = plt.figure(figsize=(24,20))
 barwidth=0.2
-plt.bar(np.arange(len(gifs1)),basic_scores, barwidth,color=my_colors[0],hold=True)
-plt.bar(np.arange(len(gifs1))+barwidth, w_best_scores, barwidth, color=my_colors[1])
+plt.bar(np.arange(len(gifs1)),basic_scores[basic_scores_order], barwidth,color=my_colors[0],hold=True)
+plt.bar(np.arange(len(gifs1))+barwidth, w_best_scores[basic_scores_order], barwidth, color=my_colors[1])
 my_axes = fig.get_axes()[0]
 for i in np.arange(len(w_taus)):
-    my_axes.text(i+barwidth,w_best_scores[i]+2,str(w_taus[i]),ha='center',va='center')
+    my_axes.text(i+barwidth,w_best_scores_ordered[i]+2,str(int(w_taus_ordered[i])),ha='center',va='center')
 plt.legend(['Basic GIF','With w'], loc='upper center')
 plt.xlabel('Cell #')
 plt.ylabel('Var explained [%]')
+plt.title('Varience explained for basic GIF vs GIF with w current')
 plt.savefig(figure_path + 'varExp_basic_vs_w.png', dpi=120)
 plt.close(fig)
    
