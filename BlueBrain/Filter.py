@@ -389,7 +389,7 @@ class Filter :
                     temp_sse[dim-1] = self.get_expfit_sse(dim,dt)                
                 
             opt_ind = np.argmin(temp_sse)
-            opt_dim = len(temp_sse[opt_ind])
+            opt_dim = len(temp_taus[opt_ind])
             non_opt = ~(np.arange(len(temp_sse))==opt_ind)
             
             # if a lower dimension than the optimal is only worse by less than

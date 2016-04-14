@@ -28,7 +28,7 @@ if not os.path.exists(expm_path):
     os.makedirs(expm_path)
 
 #%%
-num_of_animals = 32
+num_of_animals = 2
 md_values = np.zeros(num_of_animals)
 gifs, expms, predicts = [], [], []
 
