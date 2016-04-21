@@ -12,6 +12,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from cycler import cycler
+from scipy.stats import mode
+
 import matplotlib as mpl
 plt.style.use('ggplot')
 mpl.rcParams['font.size'] = 16
@@ -76,6 +78,10 @@ def generate_fixed_tau_expofits(p_eta_taus, p_gamma_taus, gifs):
     a_ws = np.zeros((len(gifs),1))
     w_taus = np.zeros((len(gifs),1))
     
+    el_values = np.zeros((len(gifs),1))
+    dv_values = np.zeros((len(gifs),1))
+    vt_values = np.zeros((len(gifs),1))
+    vr_values = np.zeros((len(gifs),1))
     
     for gifnr,gif in enumerate(gifs):
         eta_amps[gifnr,0:len(gif.eta.b0)] = np.array(gif.eta.b0).squeeze()
@@ -92,11 +98,22 @@ def generate_fixed_tau_expofits(p_eta_taus, p_gamma_taus, gifs):
         
         leak_amps[gifnr] = 1/gif.C
         leak_taus[gifnr] = gif.C/gif.gl
+        
+        el_values[gifnr] = gif.El
+        dv_values[gifnr] = gif.DV
+        vt_values[gifnr] = gif.Vt_star
+        vr_values[gifnr] = gif.Vr
     
         a_ws[gifnr] = gif.a_w
         w_taus[gifnr] = gif.tau_w_opt    
         
-    # plot histograms    
+        
+    # plot histograms
+        
+    eta_hist = [None]*3
+    eta_bins = [None]*3
+    gamma_hist = [None]*3
+    gamma_bins = [None]*3
     
     fig = plt.figure(figsize=(28,20), facecolor='white')
     subrows = 4
@@ -114,32 +131,32 @@ def generate_fixed_tau_expofits(p_eta_taus, p_gamma_taus, gifs):
     ax8  = plt.subplot(gs[3  ,1])
     ax9  = plt.subplot(gs[0  ,2])
     ax10 = plt.subplot(gs[1  ,2])
-    ax11 = plt.subplot(gs[0  ,3])
-    ax12 = plt.subplot(gs[1  ,3])
-    ax13 = plt.subplot(gs[2  ,2])
+    ax11 = plt.subplot(gs[2  ,2])
+    ax12 = plt.subplot(gs[3  ,2])
+    ax13 = plt.subplot(gs[0  ,3])
+    ax14 = plt.subplot(gs[1  ,3])
+    ax15 = plt.subplot(gs[2  ,3])
+    ax16 = plt.subplot(gs[3  ,3])
     
     #==============================================================================
     # Eta plots
     #==============================================================================
-    ax1.hist(eta_amps[np.flatnonzero(eta_amps[:,0]),0], bins=20)
+    eta_hist[0], eta_bins[0], patches = ax1.hist(eta_amps[np.flatnonzero(eta_amps[:,0]),0], bins=20)
     ax1.set_xlabel('Amplitude [nA]')
     ax1.set_ylabel('# models')
     ax1.set_title('Eta\n\n  Amplitudes for tau = ' + str(p_eta_taus[0]) + 'ms')
-    ax1.set_xlim([-0.2,3])
     
-    ax2.hist(eta_amps[np.flatnonzero(eta_amps[:,1]),1], bins=10)
+    eta_hist[1], eta_bins[1], patches = ax2.hist(eta_amps[np.flatnonzero(eta_amps[:,1]),1], bins=10)
     ax2.set_xlabel('Amplitude [nA]')
     ax2.set_ylabel('# models')
     ax2.set_title('Amplitudes for tau = ' + str(p_eta_taus[1]) + 'ms')
-    ax2.set_xlim([-0.2,3])
     
-    ax3.hist(eta_amps[np.flatnonzero(eta_amps[:,2]),2], bins=10)
+    eta_hist[2], eta_bins[2], patches = ax3.hist(eta_amps[np.flatnonzero(eta_amps[:,2]),2], bins=10)
     ax3.set_xlabel('Amplitude [nA]')
     ax3.set_ylabel('# models')
     ax3.set_title('Amplitudes for tau = ' + str(p_eta_taus[2]) + 'ms')
-    ax3.set_xlim([-0.2,3])
     
-    ax4.hist(eta_dims)
+    eta_dims_hist, eta_dims_bins, patches = ax4.hist(eta_dims)
     ax4.set_xlabel('# exponentials')
     ax4.set_ylabel('# models')
     ax4.set_xticks([1,2,3])
@@ -152,25 +169,22 @@ def generate_fixed_tau_expofits(p_eta_taus, p_gamma_taus, gifs):
     #==============================================================================
     gam_color = next(ax1._get_lines.prop_cycler)['color']
     
-    ax5.hist(gamma_amps[np.flatnonzero(gamma_amps[:,0]),0], bins=20, color=gam_color)
+    gamma_hist[0], gamma_bins[0], patches = ax5.hist(gamma_amps[np.flatnonzero(gamma_amps[:,0]),0], bins=20, color=gam_color)
     ax5.set_xlabel('Amplitude [mV]')
     ax5.set_ylabel('# models')
     ax5.set_title('Gamma\n\n  Amplitudes for tau = ' + str(p_gamma_taus[0]) + 'ms')
-    ax5.set_xlim([-100,600])
     
-    ax6.hist(gamma_amps[np.flatnonzero(gamma_amps[:,1]),1], bins=10, color=gam_color)
+    gamma_hist[1], gamma_bins[1], patches = ax6.hist(gamma_amps[np.flatnonzero(gamma_amps[:,1]),1], bins=10, color=gam_color)
     ax6.set_xlabel('Amplitude [mV]')
     ax6.set_ylabel('# models')
     ax6.set_title('Amplitudes for tau = ' + str(p_gamma_taus[1]) + 'ms')
-    ax6.set_xlim([-100,600])
     
-    ax7.hist(gamma_amps[np.flatnonzero(gamma_amps[:,2]),2], bins=10, color=gam_color)
+    gamma_hist[2], gamma_bins[2], patches = ax7.hist(gamma_amps[np.flatnonzero(gamma_amps[:,2]),2], bins=10, color=gam_color)
     ax7.set_xlabel('Amplitude [mV]')
     ax7.set_ylabel('# models')
     ax7.set_title('Amplitudes for tau = ' + str(p_gamma_taus[2]) + 'ms')
-    ax7.set_xlim([-100,600])
     
-    ax8.hist(gamma_dims, color=gam_color)
+    gamma_dims_hist, gamma_dims_bins, patches = ax8.hist(gamma_dims, color=gam_color)
     ax8.set_xlabel('# exponentials')
     ax8.set_ylabel('# models')
     ax8.set_xticks([1,2,3])
@@ -192,38 +206,55 @@ def generate_fixed_tau_expofits(p_eta_taus, p_gamma_taus, gifs):
     ax10.set_ylabel('# models')
     ax10.set_title('Time constants (C/gl)')
     
+    ax11.hist(el_values, bins=20, color=leak_color)
+    ax11.set_xlabel('Voltage [mV]')
+    ax11.set_ylabel('# models')
+    ax11.set_title('Reversal potential E_l')
+    
     #==============================================================================
     # W current plots
     #==============================================================================
     w_color = next(ax1._get_lines.prop_cycler)['color']
     
-    ax11.hist(a_ws, bins=20, color=w_color)
-    ax11.plot([0.0,0.0],[0,5], ':', color='black')
-    ax11.set_xlim([-0.02,0.02])
-    ax11.set_xticks(np.arange(-0.01,0.021,0.01))
-    ax11.set_xlabel('Amplitude')
-    ax11.set_ylabel('# models')
-    ax11.set_title('W current\n\n  Amplitudes')
+    ax13.hist(a_ws, bins=20, color=w_color)
+    ax13.plot([0.0,0.0],[0,5], ':', color='black')
+    ax13.set_xlim([-0.02,0.02])
+    ax13.set_xticks(np.arange(-0.01,0.021,0.01))
+    ax13.set_xlabel('Amplitude [nA]')
+    ax13.set_ylabel('# models')
+    ax13.set_title('W current\n\n  Amplitudes')
     
-    ax12.hist(w_taus, bins=20, color=w_color)
-    ax12.set_xlabel('Time [ms]')
-    ax12.set_ylabel('# models')
-    ax12.set_title('Time constants')
+    ax14.hist(w_taus, bins=20, color=w_color)
+    ax14.set_xlabel('Time [ms]')
+    ax14.set_ylabel('# models')
+    ax14.set_title('Time constants')
     
     #==============================================================================
     # Other plots
     #==============================================================================
     n_color = next(ax1._get_lines.prop_cycler)['color']
+    
+    ax12.hist(vr_values, bins=20, color=n_color)
+    ax12.set_xlabel('Voltage [mV]')
+    ax12.set_ylabel('# models')
+    ax12.set_title('Voltage reset Vr')
+    
+    n_color = next(ax1._get_lines.prop_cycler)['color']
+    ax15.hist(vt_values, bins=20, color=n_color)
+    ax15.set_xlabel('Voltage [mV]')
+    ax15.set_ylabel('# models')
+    ax15.set_title('Steady state voltage threshold Vt*')
+    
     n_color = next(ax1._get_lines.prop_cycler)['color']
     
-    ax13.plot(w_taus,leak_taus,'.',MarkerSize=12, color=n_color)
-    ax13.set_xlabel('tau_w [ms]')
-    ax13.set_ylabel('tau_leak [ms]')
-    ax13.set_xlim([0, np.max(w_taus)*1.1])
-    ax13.set_ylim([0, np.max(leak_taus)*1.1])
-    ax13.set_title('tau_w vs. tau_leak')
+    ax16.hist(dv_values, bins=20, color=n_color)
+    ax16.set_xlabel('Voltage [mV]')
+    ax16.set_ylabel('# models')
+    ax16.set_title('Threshold sharpness DV [mV]')
     
-    plt.suptitle('Summary of exponential fits',fontsize=24)
+    plt.suptitle('Summary of model fits and exponential fits',fontsize=24)
+    
+    
     
     #==============================================================================
     #  Save figure
@@ -234,6 +265,26 @@ def generate_fixed_tau_expofits(p_eta_taus, p_gamma_taus, gifs):
         
     plt.savefig(figure_path + model_name + '_expofit_fixed_taus_stats_with' + str(p_gamma_taus) + '_for_gamma.png', dpi=120)
     plt.close(fig)
+    
+    #==============================================================================
+    #  Correlation between tau_w and tau_m
+    #==============================================================================
+    fig = plt.figure(figsize=(12,12), facecolor='white')
+    
+    plt.plot(w_taus,leak_taus,'.',MarkerSize=12)
+    plt.xlabel('tau_w [ms]')
+    plt.ylabel('tau_leak [ms]')
+    plt.xlim([0, np.max(w_taus)*1.1])
+    plt.ylim([0, np.max(leak_taus)*1.1])
+    plt.title('tau_w vs. tau_leak')
+    
+    if not os.path.exists(figure_path):
+        os.makedirs(figure_path)
+        
+    plt.savefig(figure_path + model_name + '_tau_w_vs_tau_leak.png', dpi=120)
+    plt.close(fig)
+    
+    
     
     #==============================================================================
     #  single gamma fits figure
@@ -304,12 +355,77 @@ def generate_fixed_tau_expofits(p_eta_taus, p_gamma_taus, gifs):
         
     plt.savefig(figure_path + model_name + 'single_expofits_eta_fixed_taus_with' + str(p_gamma_taus) + '_for_gamma.png', dpi=120)
     plt.close(fig)
-
+    
+    #==============================================================================
+    #  eta ensemble plus 'average' figure
+    #==============================================================================
+    eta_avg_b0 = []
+    eta_avg_len = np.int(mode(eta_dims).mode)
+    for dim in np.arange(eta_avg_len):
+        max_amp = np.mean([eta_bins[dim][np.argmax(eta_hist[dim])], eta_bins[dim][np.argmax(eta_hist[dim])+1]])
+        eta_avg_b0.append(max_amp)
+    eta_avg_b0 = np.reshape(eta_avg_b0,(eta_avg_len,1))
+    eta_avg_tau0 = p_eta_taus[0:eta_avg_len]
+    
+    fig = plt.figure(figsize=(20,20), facecolor='white')
+    plt.plot([t[0],t[-1]], [0.0,0.0], ':', color='black')
+    
+    for gifnr,gif in enumerate(gifs):
+        F_fit = gif.eta.multiExpEval(t, gif.eta.b0, gif.eta.tau0)
+        plt.plot(t, F_fit, hold=True, color='black', alpha=0.4)
+        
+    avg_fit = gifs[0].eta.multiExpEval(t, eta_avg_b0, eta_avg_tau0)
+    plt.plot(t, avg_fit, label='Average', hold=True, color='red', lw=3)
+    
+    plt.xlim([0,100])
+    plt.xlabel('Time [ms]')
+    plt.ylabel('Amplitude [nA]')
+    plt.title('Eta kernels and average kernel')
+    plt.legend()
+    
+    if not os.path.exists(figure_path):
+        os.mkdir(figure_path)
+        
+    plt.savefig(figure_path + model_name + 'eta_ensemble_and_avg.png', dpi=120)
+    plt.close(fig)
+    
+    #==============================================================================
+    #  gamma ensemble plus 'average' figure
+    #==============================================================================
+    gamma_avg_b0 = []
+    gamma_avg_len = np.int(mode(gamma_dims).mode)
+    for dim in np.arange(gamma_avg_len):
+        max_amp = np.mean([gamma_bins[dim][np.argmax(gamma_hist[dim])], gamma_bins[dim][np.argmax(gamma_hist[dim])+1]])
+        gamma_avg_b0.append(max_amp)
+    gamma_avg_b0 = np.reshape(gamma_avg_b0,(gamma_avg_len,1))
+    gamma_avg_tau0 = p_gamma_taus[0:gamma_avg_len]
+    
+    fig = plt.figure(figsize=(20,20), facecolor='white')
+    plt.plot([t[0],t[-1]], [0.0,0.0], ':', color='black')
+    
+    for gifnr,gif in enumerate(gifs):
+        F_fit = gif.gamma.multiExpEval(t, gif.gamma.b0, gif.gamma.tau0)
+        plt.plot(t, F_fit, hold=True, color='black', alpha=0.4)
+        
+    avg_fit = gifs[0].gamma.multiExpEval(t, gamma_avg_b0, gamma_avg_tau0)
+    plt.plot(t, avg_fit, label='Average', hold=True, color='red', lw=3)
+    
+    plt.xlim([0,100])
+    plt.xlabel('Time [ms]')
+    plt.ylabel('Amplitude [mV]')
+    plt.title('Gamma kernels and average kernel')
+    plt.legend()
+    
+    if not os.path.exists(figure_path):
+        os.mkdir(figure_path)
+        
+    plt.savefig(figure_path + model_name + 'gamma_ensemble_and_avg.png', dpi=120)
+    plt.close(fig)
         
         
 #%% run fits
 my_eta_taus = [5,50,100]
-my_gamma_taus = [10,50,150]
+my_gamma_taus = [10,50,100]
 
 generate_fixed_tau_expofits(my_eta_taus,my_gamma_taus,gifs)
 
