@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 ############################################################################################################
 # STEP 1: LOAD EXPERIMENTAL DATA
 ############################################################################################################
-root_path = '/home/andrej/Documents/Code/BlueBrain/article_4_data/grouped_ephys/'
+root_path = './article_4_data/grouped_ephys/'
 
 dirs = sorted(os.listdir(root_path))
 
@@ -34,7 +34,7 @@ for i in range(5):#len(dirs)):
 
 #%% plot data sets in one figure per animal
 
-figures_path = '/home/andrej/Documents/Code/BlueBrain/results/figures/raw_data'
+figures_path = './results/figures/raw_data'
 animalset = np.arange(0,len(dirs))
 for i in animalset:
     PATH = root_path + dirs[i] + '/'

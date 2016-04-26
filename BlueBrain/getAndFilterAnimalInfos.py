@@ -9,7 +9,7 @@ import os
 import urllib
 import json
 
-files = os.listdir('/home/andrej/Documents/Code/BlueBrain/article_4_data')
+files = os.listdir('./article_4_data')
 
 raw_names = [name[0:-4] for name in files]
 
