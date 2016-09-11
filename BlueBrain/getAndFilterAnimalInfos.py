@@ -9,7 +9,7 @@ import os
 import urllib
 import json
 
-files = os.listdir('./article_4_data')
+files = os.listdir('./full_dataset/article_4_data')
 
 raw_names = [name[0:-4] for name in files]
 
@@ -51,10 +51,13 @@ for animal in infos.keys():
     if criterion1 in infos[animal] and criterion2 in infos[animal] and criterion3 in infos[animal]:
         desired_animals[animal] = infos[animal]
 
-infofile = open('/home/andrej/Documents/Code/BlueBrain/animal_infos','w')
+infofile = open('/home/andrej/Dropbox/Arbeit/MKP/gif_fitting/BlueBrain/animal_infos','w')
 json.dump(desired_animals,infofile)
 infofile.close()
 
+full_infofile = open('/home/andrej/Dropbox/Arbeit/MKP/gif_fitting/BlueBrain/animal_infos_full','w')
+json.dump(infos,full_infofile)
+full_infofile.close()
 #%% open it again with the following command in the terminal
 
     
