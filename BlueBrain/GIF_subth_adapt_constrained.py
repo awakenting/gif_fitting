@@ -41,6 +41,8 @@ class GIF_subadapt_constrained(ThresholdModel) :
     """
 
     def __init__(self, dt=0.1):
+        
+        super(ThresholdModel, self).__init__()
                    
         self.dt = dt                    # dt used in simulations (eta and gamma are interpolated according to this value)
   
@@ -83,6 +85,11 @@ class GIF_subadapt_constrained(ThresholdModel) :
         
         self.expm_file      = []              # filename of the experiment object, with the data that was fitted
         self.pred           = []              # prediction object with simulated traces and spike trains
+        
+        self.var_explained_dV  = 0
+        self.var_explained_V   = 0
+        self.mean_se_dV = 0
+        self.mean_se_V = 0
         
         
         # Initialize the spike-triggered current eta with an exponential function        
@@ -459,7 +466,7 @@ class GIF_subadapt_constrained(ThresholdModel) :
                      
             # initial parameter set
             p0 = np.ones([np.shape(X)[1],1])
-            # set initial value of -C/g_l to -0.1 so that it's whithin the boundaries, see bonds
+            # set initial value of -g_l/C to -0.1 so that it's whithin the boundaries, see bonds
             p0[0] = p0[0]*-0.1
                      
             if plot_parameter_traces:
@@ -486,18 +493,18 @@ class GIF_subadapt_constrained(ThresholdModel) :
             self.eta_trace.append(np.reshape(temp_eta,(len(temp_eta),1)))
             
             # Compute percentage of variance explained on dV/dt
-            var_explained_dV = 1.0 - np.mean((Y - np.dot(X,p_opt))**2)/np.var(Y)
-            
+            self.var_explained_dV = 1.0 - np.mean((Y - np.dot(X,p_opt))**2)/np.var(Y)
+            self.mean_se_dV = np.mean((Y - np.dot(X,p_opt))**2)
             # Update model parameters if score is best so far
             
-            if var_explained_dV > np.max(self.tau_w_scores):                
+            if self.var_explained_dV > np.max(self.tau_w_scores):                
                 self.C  = 1./p_opt[1]
                 self.gl = -p_opt[0]*self.C
                 self.El = p_opt[2]*self.C/self.gl
                 self.eta.setFilter_Coefficients(-p_opt[3:-1]*self.C)
                 self.a_w = -p_opt[-1]*self.C
                 
-            self.tau_w_scores[idx_tau_w] = var_explained_dV
+            self.tau_w_scores[idx_tau_w] = self.var_explained_dV
                 
                 
         self.tau_w_opt = self.tau_w_values[np.argmax(self.tau_w_scores)]
@@ -513,6 +520,7 @@ class GIF_subadapt_constrained(ThresholdModel) :
         # Compute percentage of variance explained on V
     
         SSE = 0     # sum of squared errors
+        MSE = 0     # mean squared error
         VAR = 0     # variance of data
         
         for tr in experiment.trainingset_traces :
@@ -533,12 +541,14 @@ class GIF_subadapt_constrained(ThresholdModel) :
                 indices_tmp = tr.getROI_FarFromSpikes(0.0, self.Tref)
                 
                 SSE += np.sum((V_est[indices_tmp] - tr.V[indices_tmp])**2)
+                MSE += np.mean((V_est[indices_tmp] - tr.V[indices_tmp])**2)
                 VAR += len(indices_tmp)*np.var(tr.V[indices_tmp])
                 
-        var_explained_V = 1.0 - SSE / VAR
+        self.var_explained_V = 1.0 - SSE / VAR
+        self.mean_se_V = MSE
 
         #print('Sum squared error: %0.2f' % (SSE))
-        print ("Percentage of variance explained (on V): %0.2f" % (var_explained_V*100.0))
+        print ("Percentage of variance explained (on V): %0.2f" % (self.var_explained_V*100.0))
                     
 
     def fitSubthresholdDynamics_Build_Xmatrix_Yvector(self, trace, c_tau_w, DT_beforeSpike=5.0):
@@ -839,7 +849,79 @@ class GIF_subadapt_constrained(ThresholdModel) :
                 
         return (X, X_spikes, sum_X_spikes,  N_spikes, T_l)
  
+    ########################################################################################################
+    # GET FUNCTIONS FOR FITTING PERFORMANCE
+    ########################################################################################################
  
+    def get_var_explained(self):
+        if self.var_explained_dV is None:
+            self.compute_var_explained()
+            return self.var_explained_dV, self.var_explained_V
+        else:
+            return self.var_explained_dV, self.var_explained_V
+            
+    def compute_var_explained(self, DT_beforeSpike=5.0):
+        
+        SSE = 0     # sum of squared errors
+        MSE = 0     # mean squared error
+        VAR = 0     # variance of data
+        for tr in experiment.trainingset_traces :
+        
+            if tr.useTrace :
+
+                # Simulate subthreshold dynamics 
+                (time, V_est, eta_sum_est) = self.simulateDeterministic_forceSpikes(tr.I, tr.V[0], tr.getSpikeTimes())                    
+                indices_tmp = tr.getROI_FarFromSpikes(0.0, self.Tref)
+                
+                SSE += np.sum((V_est[indices_tmp] - tr.V[indices_tmp])**2)
+                MSE += np.mean((V_est[indices_tmp] - tr.V[indices_tmp])**2)
+                VAR += len(indices_tmp)*np.var(tr.V[indices_tmp])
+                
+        self.var_explained_V = 1.0 - SSE / VAR
+        self.mean_se_V = MSE
+        
+        # Build X matrix and Y vector to perform linear regression (use all traces in training set)            
+        X = []
+        Y = []
+    
+        cnt = 0
+        
+        for tr in experiment.trainingset_traces :
+        
+            if tr.useTrace :
+        
+                cnt += 1
+                reprint( "Compute X matrix for repetition %d" % (cnt) )          
+                
+                (X_tmp, Y_tmp) = self.fitSubthresholdDynamics_Build_Xmatrix_Yvector(tr, DT_beforeSpike=DT_beforeSpike)
+     
+                X.append(X_tmp)
+                Y.append(Y_tmp)
+    
+    
+        # Concatenate matrixes associated with different traces to perform a single multilinear regression
+        if cnt == 1:
+            X = X[0]
+            Y = Y[0]
+            
+        elif cnt > 1:
+            X = np.concatenate(X, axis=0)
+            Y = np.concatenate(Y, axis=0)
+        
+        else :
+            print ("\nError, at least one training set trace should be selected to perform fit.")
+   
+        eta_coeffs = self.eta.getCoefficients()
+        p_opt = np.empty(4+len(eta_coeffs))
+            
+        p_opt[0] = -self.gl/self.C
+        p_opt[1] = 1/self.C
+        p_opt[2] = self.gl*self.El/self.C
+        p_opt[3:-1] = eta_coeffs
+        p_opt[-1] = -self.a_w/self.C
+                
+        self.var_explained_dV = 1.0 - np.mean((Y - np.dot(X,p_opt))**2)/np.var(Y)
+        self.mean_se_dV = np.mean((Y - np.dot(X,b))**2)
         
     ########################################################################################################
     # PLOT AND PRINT FUNCTIONS

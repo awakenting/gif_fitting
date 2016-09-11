@@ -4,6 +4,8 @@ import numpy as np
 from SpikingModel import *
 import Tools
 
+import os
+
 import abc
 
 class ThresholdModel(SpikingModel) :
@@ -16,6 +18,8 @@ class ThresholdModel(SpikingModel) :
     
     __metaclass__  = abc.ABCMeta
     
+    def __init__(self):
+        self.save_path = ''
     
     @abc.abstractmethod
     def simulateVoltageResponse(self, I, dt):
