@@ -2,4 +2,6 @@
 *_pycache_*
 *~
 *temporary*
-
+*.zip
+*.ibw
+*build/

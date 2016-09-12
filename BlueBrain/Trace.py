@@ -40,7 +40,7 @@ class Trace :
 
         self.AEC_flag    = False               # Has the trace been preprocessed with AEC?
         self.V           = 0                   # mV, somatic membrane potential (after AEC)
-        self.V_d           = 0                   # mV, dendritic membrane potential (after AEC)
+        self.V_d           = 0                 # mV, dendritic membrane potential (after AEC)
         
         self.spks_flag   = False               # Do somatic spikes have been detected?
         self.spks        = 0                   # dendritic spike indices stored in indices (and not in ms!)

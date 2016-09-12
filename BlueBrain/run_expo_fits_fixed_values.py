@@ -263,7 +263,7 @@ def generate_fixed_tau_expofits(p_eta_taus, p_gamma_taus, gifs):
     if not os.path.exists(figure_path):
         os.makedirs(figure_path)
         
-    plt.savefig(figure_path + model_name + '_expofit_fixed_taus_stats_with' + str(p_gamma_taus) + '_for_gamma.png', dpi=120)
+    plt.savefig(figure_path + model_name + '_expofit_fixed_taus_stats_with' + str(p_gamma_taus[0]) + ',' + str(p_gamma_taus[1]) + ',' + str(p_gamma_taus[2]) + '_for_gamma.png', dpi=120)
     plt.close(fig)
     
     #==============================================================================
@@ -319,7 +319,7 @@ def generate_fixed_tau_expofits(p_eta_taus, p_gamma_taus, gifs):
     if not os.path.exists(figure_path):
         os.mkdir(figure_path)
         
-    plt.savefig(figure_path + model_name + 'single_expofits_gamma_fixed_taus_with' + str(p_gamma_taus) + '_for_gamma.png', dpi=120)
+    plt.savefig(figure_path + model_name + 'single_expofits_gamma_fixed_taus_with' + str(p_gamma_taus[0]) + ',' + str(p_gamma_taus[1]) + ',' + str(p_gamma_taus[2]) + '_for_gamma.png', dpi=120)
     plt.close(fig)
     
     #==============================================================================
@@ -353,7 +353,7 @@ def generate_fixed_tau_expofits(p_eta_taus, p_gamma_taus, gifs):
     if not os.path.exists(figure_path):
         os.mkdir(figure_path)
         
-    plt.savefig(figure_path + model_name + 'single_expofits_eta_fixed_taus_with' + str(p_gamma_taus) + '_for_gamma.png', dpi=120)
+    plt.savefig(figure_path + model_name + 'single_expofits_eta_fixed_taus_with' + str(p_gamma_taus[0]) + ',' + str(p_gamma_taus[1]) + ',' + str(p_gamma_taus[2]) + '_for_gamma.png', dpi=120)
     plt.close(fig)
     
     #==============================================================================
@@ -362,12 +362,14 @@ def generate_fixed_tau_expofits(p_eta_taus, p_gamma_taus, gifs):
     eta_avg_b0 = []
     eta_avg_len = np.int(mode(eta_dims).mode)
     for dim in np.arange(eta_avg_len):
-        max_amp = np.mean([eta_bins[dim][np.argmax(eta_hist[dim])], eta_bins[dim][np.argmax(eta_hist[dim])+1]])
+        max_amp = np.mean(eta_amps[dim,:])
         eta_avg_b0.append(max_amp)
     eta_avg_b0 = np.reshape(eta_avg_b0,(eta_avg_len,1))
     eta_avg_tau0 = p_eta_taus[0:eta_avg_len]
     
-    fig = plt.figure(figsize=(20,20), facecolor='white')
+    fig = plt.figure(figsize=(24,16), facecolor='white')
+    plt.subplot(1,2,1)
+    
     plt.plot([t[0],t[-1]], [0.0,0.0], ':', color='black')
     
     for gifnr,gif in enumerate(gifs):
@@ -383,24 +385,18 @@ def generate_fixed_tau_expofits(p_eta_taus, p_gamma_taus, gifs):
     plt.title('Eta kernels and average kernel')
     plt.legend()
     
-    if not os.path.exists(figure_path):
-        os.mkdir(figure_path)
-        
-    plt.savefig(figure_path + model_name + 'eta_ensemble_and_avg.png', dpi=120)
-    plt.close(fig)
-    
     #==============================================================================
     #  gamma ensemble plus 'average' figure
     #==============================================================================
     gamma_avg_b0 = []
     gamma_avg_len = np.int(mode(gamma_dims).mode)
     for dim in np.arange(gamma_avg_len):
-        max_amp = np.mean([gamma_bins[dim][np.argmax(gamma_hist[dim])], gamma_bins[dim][np.argmax(gamma_hist[dim])+1]])
+        max_amp = np.mean(gamma_amps[dim,:])
         gamma_avg_b0.append(max_amp)
     gamma_avg_b0 = np.reshape(gamma_avg_b0,(gamma_avg_len,1))
     gamma_avg_tau0 = p_gamma_taus[0:gamma_avg_len]
     
-    fig = plt.figure(figsize=(20,20), facecolor='white')
+    plt.subplot(1,2,2)
     plt.plot([t[0],t[-1]], [0.0,0.0], ':', color='black')
     
     for gifnr,gif in enumerate(gifs):
@@ -419,7 +415,7 @@ def generate_fixed_tau_expofits(p_eta_taus, p_gamma_taus, gifs):
     if not os.path.exists(figure_path):
         os.mkdir(figure_path)
         
-    plt.savefig(figure_path + model_name + 'gamma_ensemble_and_avg.png', dpi=120)
+    plt.savefig(figure_path + model_name + 'kernels_ensemble_and_avg.png', dpi=120)
     plt.close(fig)
         
         
