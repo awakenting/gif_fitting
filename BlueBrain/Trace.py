@@ -1,10 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-import cython_helpers as cyth
-
-import ReadIBW
-
+from . import cython_helpers as cyth
+from . import ReadIBW
 
 
 class Trace :

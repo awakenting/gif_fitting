@@ -1,9 +1,9 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
 from scipy.signal import fftconvolve
-from Filter import *
-import Tools
+
+from .Filter import Filter
+from . import Tools
 
 
 class Filter_ThreeExpos(Filter) :

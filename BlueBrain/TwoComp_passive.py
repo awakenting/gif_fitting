@@ -1,16 +1,14 @@
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import numpy as np
-from scipy.optimize import minimize
 
 from numpy.linalg import inv
 
-from ThresholdModel import *
-from Filter_ThreeExpos import *
-from Filter_Powerlaw import *
-
-from Tools import reprint
-import cython_helpers as cyth
+from .ThresholdModel import ThresholdModel
+from .Filter_ThreeExpos import Filter_ThreeExpos
+from .Filter_Powerlaw import Filter_Powerlaw
+from . import Tools
+from . import cython_helpers as cyth
 
 
 class TwoComp_passive(ThresholdModel) :

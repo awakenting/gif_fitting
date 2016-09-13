@@ -1,11 +1,8 @@
-import os
-import matplotlib.pyplot as plt
+import sys
 import numpy as np
-import cython_helpers as cyth
 from scipy.optimize import leastsq
 
-import sys
-
+from . import cython_helpers as cyth
 
 #==============================================================================
 # Helpers for data from BlueBrain project

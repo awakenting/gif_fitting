@@ -2,14 +2,12 @@
 This file shows how to fit a GIF to some experimental data.
 More instructions are provided on the website. 
 """
-
-from Experiment import *
-from AEC_Badel import *
-from GIF import *
-from Filter_Rect_LogSpaced import *
-
-import Tools
 import matplotlib.pyplot as plt
+
+from .Experiment import Experiment
+from .AEC_Badel import AEC_Badel
+from .GIF import GIF
+from .Filter_Rect_LogSpaced import Filter_Rect_LogSpaced
 
 PATH = '../Data/'
 

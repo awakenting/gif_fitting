@@ -7,7 +7,6 @@ import Tools
 
 
 class SpikingModel :
-
     """
     Abstract class defining an interface for Spiking Neuron Model.
     Inherit form this class to generate a new Spiking Neuron Model.

@@ -4,12 +4,12 @@ import numpy as np
 
 from numpy.linalg import inv
 
-from ThresholdModel import *
-from Filter_Rect_LogSpaced import *
-from Filter_Powerlaw import *
-
-from Tools import reprint
-import cython_helpers as cyth
+from .ThresholdModel import ThresholdModel
+from .Filter_Powerlaw import Filter_Powerlaw
+from .Filter_ThreeExpos import Filter_ThreeExpos
+from . import Tools
+from .Tools import reprint
+from . import cython_helpers as cyth
 
 
 class TwoCompGIF(ThresholdModel) :

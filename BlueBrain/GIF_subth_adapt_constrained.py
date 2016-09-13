@@ -5,11 +5,11 @@ import numpy as np
 from numpy.linalg import inv
 from scipy.optimize import minimize
 
-from ThresholdModel import *
-from Filter_Rect_LogSpaced import *
-
-from Tools import reprint
-import cython_helpers as cyth
+from .ThresholdModel import ThresholdModel
+from .Filter_Rect_LogSpaced import Filter_Rect_LogSpaced
+from . import Tools
+from .Tools import reprint
+from . import cython_helpers as cyth
 
 
 class GIF_subadapt_constrained(ThresholdModel) :
@@ -921,7 +921,7 @@ class GIF_subadapt_constrained(ThresholdModel) :
         p_opt[-1] = -self.a_w/self.C
                 
         self.var_explained_dV = 1.0 - np.mean((Y - np.dot(X,p_opt))**2)/np.var(Y)
-        self.mean_se_dV = np.mean((Y - np.dot(X,b))**2)
+        self.mean_se_dV = np.mean((Y - np.dot(X,p_opt))**2)
         
     ########################################################################################################
     # PLOT AND PRINT FUNCTIONS

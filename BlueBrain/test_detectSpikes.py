@@ -4,14 +4,10 @@ Created on Thu May 28 18:35:19 2015
 
 @author: andrej
 """
-
-#from Experiment import *
-from Experiment import *
-#from GIF import *
-from Filter_Rect_LogSpaced import *
-
-import Tools
 import matplotlib.pyplot as plt
+import numpy as np
+
+from .Experiment import Experiment
 
 PATH = '../Data/'
 

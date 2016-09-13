@@ -1,11 +1,6 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
-from Filter_Rect_LogSpaced import *
-from scipy.signal import fftconvolve
-
-from Filter import *
-
+from .Filter_Rect_LogSpaced import Filter_Rect_LogSpaced
 
 class Filter_Rect_LogSpaced_AEC(Filter_Rect_LogSpaced) :
 

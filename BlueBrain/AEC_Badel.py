@@ -1,15 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
-
-from AEC import *
-from Experiment import *
-from Filter_Rect_LinSpaced import *
-from Filter_Rect_LogSpaced_AEC import *
-
-from numpy.linalg import *
 from random import sample
-from time import time
+
+from .AEC import AEC
+from .Filter import Filter
+from .Filter_Rect_LinSpaced import Filter_Rect_LinSpaced
+from .Filter_Rect_LogSpaced_AEC import Filter_Rect_LogSpaced_AEC 
+
 
 
 class AEC_Badel(AEC) :
@@ -110,7 +108,7 @@ class AEC_Badel(AEC) :
                     
             # Compute optimal linear filter   
             XTX = np.dot(np.transpose(X_tmp), X_tmp)
-            XTX_inv = inv(XTX)
+            XTX_inv = np.linalg.inv(XTX)
             XTY = np.dot(np.transpose(X_tmp), Y)
             K_opt_coeff = np.dot(XTX_inv, XTY)
             K_opt_coeff = K_opt_coeff.flatten()

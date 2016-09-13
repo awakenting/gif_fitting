@@ -1,8 +1,9 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
-from Filter import *
-import Tools
+from scipy.signal import fftconvolve
+
+from .Filter import Filter
+from . import Tools
 
 
 class Filter_Rect_LinSpaced(Filter) :

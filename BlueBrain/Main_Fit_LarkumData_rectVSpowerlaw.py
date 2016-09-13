@@ -2,22 +2,20 @@
 This file shows how to fit a GIF to some experimental data.
 More instructions are provided on the website. 
 """
-
-from Experiment import *
-from AEC_Badel import *
-from GIF import *
-from GIF_pow import *
-from Filter_Rect_LogSpaced import *
-from Filter_Powerlaw import *
-
-import Tools
 import numpy as np
 import scipy.io as io
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+
+from .Experiment import Experiment
+from .GIF import GIF
+from .GIF_pow import GIF_pow
+from .Filter_Rect_LogSpaced import Filter_Rect_LogSpaced
+from .Filter_Powerlaw import Filter_Powerlaw
+
 
 plt.style.use('ggplot')
 
-import matplotlib as mpl
 mpl.rcParams['font.size'] = 12
 mpl.rcParams['axes.facecolor'] = 'white'
 ############################################################################################################

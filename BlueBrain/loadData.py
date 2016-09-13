@@ -6,13 +6,10 @@ Created on Thu Dec 10 17:36:33 2015
 """
 
 import os
-from Experiment_auto_read_T import *
-from AEC_Badel import *
-from GIF import *
-from Filter_Rect_LogSpaced import *
-
-import Tools
 import matplotlib.pyplot as plt
+import numpy as np
+
+from .Experiment_auto_read_T import Experiment_auto_read_T
 
 ############################################################################################################
 # STEP 1: LOAD EXPERIMENTAL DATA

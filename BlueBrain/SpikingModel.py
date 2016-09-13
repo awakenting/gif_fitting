@@ -1,13 +1,11 @@
 import abc
-
 import numpy as np
 import pickle as pkl
 
-import Tools
+from . import Tools
 
 
-class SpikingModel :
-
+class SpikingModel:
     """
     Abstract class defining an interface for Spiking Neuron Model.
     Inherit form this class to generate a new Spiking Neuron Model.

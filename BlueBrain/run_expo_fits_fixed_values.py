@@ -4,17 +4,17 @@ Created on Wed Apr 13 17:08:43 2016
 
 @author: andrej
 """
-
-from GIF_subth_adapt_constrained import GIF_subadapt_constrained
-from Filter_Rect_LogSpaced import Filter_Rect_LogSpaced
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-from cycler import cycler
+import matplotlib as mpl
 from scipy.stats import mode
 
-import matplotlib as mpl
+from .GIF_subth_adapt_constrained import GIF_subadapt_constrained
+from .Filter_Rect_LogSpaced import Filter_Rect_LogSpaced
+
+
 plt.style.use('ggplot')
 mpl.rcParams['font.size'] = 16
 mpl.rcParams['axes.facecolor'] = 'white'

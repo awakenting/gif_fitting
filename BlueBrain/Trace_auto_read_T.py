@@ -1,9 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-import cython_helpers as cyth
-
-import ReadIBW_return_length_and_dt
+from . import cython_helpers as cyth
+from . import ReadIBW_return_length_and_dt
 
 
 

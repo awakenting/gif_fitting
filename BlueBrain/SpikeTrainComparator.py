@@ -4,8 +4,6 @@ import numpy as np
 from scipy.signal import fftconvolve
 
 
-
-
 class SpikeTrainComparator :
 
     """

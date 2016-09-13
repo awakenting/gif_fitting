@@ -3,14 +3,16 @@ This file shows how to fit a GIF to some experimental data.
 More instructions are provided on the website. 
 """
 import os
-from Experiment_auto_read_T import *
-from AEC_Badel import *
-from GIF import *
-from GIF_pow import *
-from Filter_Rect_LogSpaced import *
-
-import Tools
 import matplotlib.pyplot as plt
+import numpy as np
+
+from .Experiment_auto_read_T import Experiment_auto_read_T
+from .GIF import GIF
+from .GIF_pow import GIF_pow
+from .Filter_Rect_LogSpaced import Filter_Rect_LogSpaced
+from .Filter_ThreeExpos import Filter_ThreeExpos
+from .Filter_Powerlaw import Filter_Powerlaw
+from . import Tools
 
 PATH = '../Data/'
 

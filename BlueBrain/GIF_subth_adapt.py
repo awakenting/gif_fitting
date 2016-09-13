@@ -4,11 +4,11 @@ import numpy as np
 
 from numpy.linalg import inv
 
-from ThresholdModel import *
-from Filter_Rect_LogSpaced import *
-
-from Tools import reprint
-import cython_helpers as cyth
+from .ThresholdModel import ThresholdModel
+from .Filter_Rect_LogSpaced import Filter_Rect_LogSpaced
+from . import Tools
+from .Tools import reprint
+from . import cython_helpers as cyth
 
 
 class GIF_subadapt(ThresholdModel) :

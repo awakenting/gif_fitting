@@ -17,7 +17,6 @@
 # the technical notes linked above. 
 
 import struct
-from time import clock
 import numpy
 import math
 

@@ -4,23 +4,18 @@ Created on Mon Oct 19 16:35:29 2015
 
 @author: andrej
 """
-from TwoComp_passive import *
-from Experiment import *
-from AEC_Badel import *
-from TwoComp_passive import *
-from Filter_Rect_LogSpaced import *
-from Filter_Powerlaw import *
-from Filter_ThreeExpos import *
-import Tools
-import scipy.io as io
-from scipy.signal import fftconvolve
-
 import numpy as np
 import matplotlib.pylab as plt
+import matplotlib as mpl
+import scipy.io as io
+
+from .TwoComp_passive import TwoComp_passive
+from .Experiment import Experiment
+from .Filter_Powerlaw import Filter_Powerlaw
+from .Filter_ThreeExpos import Filter_ThreeExpos
+
 
 plt.style.use('ggplot')
-
-import matplotlib as mpl
 mpl.rcParams['font.size'] = 12
 mpl.rcParams['axes.facecolor'] = 'white'
 

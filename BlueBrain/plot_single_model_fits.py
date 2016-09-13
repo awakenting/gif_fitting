@@ -5,24 +5,26 @@ Created on Mon Jul 25 17:39:37 2016
 @author: andrej
 """
 import os
-import fit_bluebrain_subadapt_constrained as fit_bluebrain_subadapt_constrained
-from SpikeTrainComparator import SpikeTrainComparator
-from GIF_subth_adapt_constrained import GIF_subadapt_constrained
-from Experiment_auto_read_T import Experiment_auto_read_T
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import matplotlib as mpl
-mpl.rcParams['font.size'] = 16
-mpl.rcParams['axes.facecolor'] = 'white'
-
 import numpy as np
 from scipy.signal import fftconvolve
+
+from .SpikeTrainComparator import SpikeTrainComparator
+from .GIF_subth_adapt_constrained import GIF_subadapt_constrained
+from .Experiment_auto_read_T import Experiment_auto_read_T
+
+
+mpl.rcParams['font.size'] = 16
+mpl.rcParams['axes.facecolor'] = 'white'
 
 unwanted_sessions = ['APThreshold', 'APWaveform']
 root_path = './article_4_data/grouped_ephys/'
 figure_path = './results/figures/fits/subadapt_constrained_tau_w_50ms/'
 model_path = './results/models/subadapt_constrained/'
 expm_path = './results/experiments/'
+
 if not os.path.exists(model_path):
     os.makedirs(model_path)
 if not os.path.exists(expm_path):

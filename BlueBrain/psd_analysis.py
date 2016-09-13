@@ -7,12 +7,14 @@ Created on Thu Jul  9 18:59:17 2015
 import numpy as np
 import scipy.io as io
 import matplotlib.pyplot as plt
-from Experiment import *
+from scipy.signal import welch
+
+from .Experiment import Experiment
 
 ############################################################################################################
 # Power spectrum analysis
 ############################################################################################################
-from scipy.signal import welch
+
 
 # define nice colors
 tabColors = [(255,127,14),(214,39,40),(148,103,189),(44,160,44),(31,119,180),

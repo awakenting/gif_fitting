@@ -2,22 +2,18 @@
 This file shows how to fit a GIF to some experimental data.
 More instructions are provided on the website. 
 """
-
-from Experiment import *
-from AEC_Badel import *
-from TwoComp_passive import *
-from Filter_Rect_LogSpaced import *
-from Filter_Powerlaw import *
-from Filter_ThreeExpos import *
-
-import Tools
 import numpy as np
 import scipy.io as io
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+
+from .Experiment import Experiment
+from .TwoComp_passive import TwoComp_passive
+from .Filter_Powerlaw import Filter_Powerlaw
+from .Filter_ThreeExpos import Filter_ThreeExpos
 
 plt.style.use('ggplot')
 
-import matplotlib as mpl
 mpl.rcParams['font.size'] = 12
 mpl.rcParams['axes.facecolor'] = 'white'
 ############################################################################################################

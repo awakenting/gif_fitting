@@ -6,24 +6,22 @@ Created on Thu Aug  4 13:43:25 2016
 """
 
 import os
-import fit_bluebrain_subadapt_constrained as fit_bluebrain_subadapt_constrained
-from SpikeTrainComparator import SpikeTrainComparator
-from GIF import GIF
-from GIF_subth_adapt_constrained import GIF_subadapt_constrained
-from Experiment_auto_read_T import Experiment_auto_read_T
-
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
+import numpy as np
 import matplotlib as mpl
+import matplotlib.gridspec as gridspec
+from matplotlib.colors import ColorConverter as colcon
+import xlsxwriter
+
+from .GIF import GIF
+from .GIF_subth_adapt_constrained import GIF_subadapt_constrained
+from .Experiment_auto_read_T import Experiment_auto_read_T
+
 plt.style.use('ggplot')
 mpl.rcParams['font.size'] = 16
 mpl.rcParams['axes.facecolor'] = 'white'
 default_colors = [c['color'] for c in plt.rcParams['axes.prop_cycle']]
-from matplotlib.colors import ColorConverter as colcon
 
-import numpy as np
-from scipy.signal import fftconvolve
-import xlsxwriter
 
 unwanted_sessions = ['APThreshold', 'APWaveform']
 root_path = './article_4_data/grouped_ephys/'

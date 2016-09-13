@@ -1,11 +1,11 @@
-
 import os
-from Experiment_auto_read_T import *
-from GIF_subth_adapt_constrained import *
-from Filter_Rect_LogSpaced import *
+import numpy as np
 
-import Tools
-import matplotlib.pyplot as plt
+from .Experiment_auto_read_T import Experiment_auto_read_T
+from .GIF_subth_adapt_constrained import GIF_subadapt_constrained
+from .Filter_Rect_LogSpaced import Filter_Rect_LogSpaced
+from . import Tools
+
 
 
 def run(animal_number, root_path, unwanted_sessions):

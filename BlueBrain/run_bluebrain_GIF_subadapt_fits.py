@@ -4,16 +4,18 @@ Created on Thu Jan 21 21:23:11 2016
 
 @author: andrej
 """
-import fit_bluebrain_subadapt as fit_bluebrain_subadapt
-from SpikeTrainComparator import SpikeTrainComparator
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import matplotlib as mpl
-mpl.rcParams['font.size'] = 16
-mpl.rcParams['axes.facecolor'] = 'white'
-
 import numpy as np
 from scipy.signal import fftconvolve
+
+from . import fit_bluebrain_subadapt
+from .SpikeTrainComparator import SpikeTrainComparator
+
+
+mpl.rcParams['font.size'] = 16
+mpl.rcParams['axes.facecolor'] = 'white'
 
 unwanted_sessions = ['APThreshold', 'APWaveform']
 root_path = '/home/andrej/Documents/Code/BlueBrain/article_4_data/grouped_ephys/'

@@ -1,15 +1,11 @@
-import matplotlib.pyplot as plt
+import abc
 import numpy as np
 
-from SpikingModel import *
-import Tools
+from .SpikingModel import SpikingModel
+from . import Tools
 
-import os
 
-import abc
-
-class ThresholdModel(SpikingModel) :
-
+class ThresholdModel(SpikingModel):
     """
     Abstract class to define a threshold model.
     A threshold model is a model that explicitly models the membrane potential V and the firing threshold Vt.
