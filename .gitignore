@@ -5,3 +5,6 @@
 *.zip
 *.ibw
 *build/
+*.pkl
+*ipynb_checkpoints*
+*.so
