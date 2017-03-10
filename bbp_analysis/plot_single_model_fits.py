@@ -11,8 +11,8 @@ import matplotlib as mpl
 import numpy as np
 from scipy.signal import fftconvolve
 
-from .SpikeTrainComparator import SpikeTrainComparator
-from .GIF_subth_adapt_constrained import GIF_subadapt_constrained
+from fitgif.SpikeTrainComparator import SpikeTrainComparator
+from fitgif.GIF_subth_adapt_constrained import GIF_subadapt_constrained
 from .Experiment_auto_read_T import Experiment_auto_read_T
 
 

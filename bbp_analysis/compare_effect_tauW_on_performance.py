@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Tue Mar 15 19:13:55 2016
 
@@ -10,8 +9,8 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import matplotlib as mpl
 
-from .GIF_subth_adapt_constrained import GIF_subadapt_constrained
-from .GIF import GIF
+from fitgif.GIF_subth_adapt_constrained import GIF_subadapt_constrained
+from fitgif.GIF import GIF
 
 plt.style.use('ggplot')
 mpl.rcParams['font.size'] = 16

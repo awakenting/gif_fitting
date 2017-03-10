@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Thu Aug  4 13:43:25 2016
 
@@ -13,8 +12,8 @@ import matplotlib.gridspec as gridspec
 from matplotlib.colors import ColorConverter as colcon
 import xlsxwriter
 
-from .GIF import GIF
-from .GIF_subth_adapt_constrained import GIF_subadapt_constrained
+from fitgif.GIF import GIF
+from fitgif.GIF_subth_adapt_constrained import GIF_subadapt_constrained
 from .Experiment_auto_read_T import Experiment_auto_read_T
 
 plt.style.use('ggplot')

@@ -7,7 +7,7 @@ Created on Thu May 28 18:35:19 2015
 import matplotlib.pyplot as plt
 import numpy as np
 
-from .Experiment import Experiment
+from fitgif.Experiment import Experiment
 
 PATH = '../Data/'
 

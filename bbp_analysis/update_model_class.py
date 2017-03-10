@@ -7,8 +7,8 @@ Created on Thu Aug  4 15:53:57 2016
 
 import os
 
-from .GIF import GIF
-from .GIF_subth_adapt_constrained import GIF_subadapt_constrained
+from fitgif.GIF import GIF
+from fitgif.GIF_subth_adapt_constrained import GIF_subadapt_constrained
 
 root_path = './article_4_data/grouped_ephys/'
 animal_dirs = sorted(os.listdir(root_path))

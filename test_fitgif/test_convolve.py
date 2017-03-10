@@ -7,8 +7,8 @@ Created on Wed Aug 12 16:30:42 2015
 import matplotlib.pyplot as plt
 import numpy as np
 
-from .Filter_ThreeExpos import Filter_ThreeExpos
-from .Filter_Powerlaw import Filter_Powerlaw
+from fitgif.Filter_ThreeExpos import Filter_ThreeExpos
+from fitgif.Filter_Powerlaw import Filter_Powerlaw
 
 inp = np.random.randn(100)*10-3
 myfilter = Filter_ThreeExpos(10)
