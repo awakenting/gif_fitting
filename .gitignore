@@ -8,3 +8,4 @@
 *.pkl
 *ipynb_checkpoints*
 *.so
+.idea*
