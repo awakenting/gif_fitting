@@ -242,6 +242,32 @@ def c_simulateDeterministic_forceSpikes_w(int p_T, float p_dt, float p_gl, float
     
     return V, eta_sum
     
+def c_simulate_lif(int p_T, float p_dt, float p_gl, float p_C, float p_El, float p_Vr, float p_Tref,\
+                   float p_Vt, np.ndarray[DTYPE_t]V, np.ndarray[DTYPE_t] I, np.ndarray[DTYPE_t] spks):
+    
+    cdef int Tref_ind = int(p_Tref/p_dt)
+    cdef int t, j
+    
+    t = 0
+    while t < (p_T-1):
+        
+        ## INTEGRATE VOLTAGE
+        V[t+1] = V[t] + p_dt/p_C*(-p_gl*(V[t] - p_El) + I[t])
+        
+        ## PRODUCE SPIKE WHEN THRESHOLD IS CROSSED
+        if (V[t+1] >= p_Vt):
+                            
+            if (t+1 < p_T-1):
+                spks[t+1] = 1.0
+            
+            t = t + Tref_ind
+            
+            if (t+1 < p_T-1):
+                V[t+1] = p_Vr
+        
+        t += 1
+    
+    return V, spks
     
     
     

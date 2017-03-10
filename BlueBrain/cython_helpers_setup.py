@@ -13,6 +13,7 @@ import numpy as np
 ext_modules=[Extension("cython_helpers",sources=["cython_helpers.pyx"],include_dirs=[np.get_include()])]
 
 setup(
-  name = "Cython_helpers",
+  name = "cython_helpers",
   ext_modules = cythonize(ext_modules)
+  
 )
