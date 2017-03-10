@@ -3,11 +3,11 @@ from matplotlib import rcParams
 import numpy as np
 from numpy.linalg import inv
 
-from .ThresholdModel import ThresholdModel
-from .Filter_Rect_LogSpaced import Filter_Rect_LogSpaced
-from . import Tools
-from .Tools import reprint
-from . import cython_helpers as cyth
+from ThresholdModel import ThresholdModel
+from Filter_Rect_LogSpaced import Filter_Rect_LogSpaced
+import Tools
+from Tools import reprint
+import cython_helpers as cyth
 
 
 class GIF(ThresholdModel) :
@@ -260,7 +260,8 @@ class GIF(ThresholdModel) :
         print ("################################\n")
 
         self.fitVoltageReset(experiment, self.Tref, do_plot=False)
-
+        
+        self.initialize_eta()
         self.fitSubthresholdDynamics(experiment, DT_beforeSpike=DT_beforeSpike, do_plot=False)
 
         self.fitStaticThreshold(experiment)
@@ -318,13 +319,14 @@ class GIF(ThresholdModel) :
     ########################################################################################################
     # FUNCTIONS RELATED TO FIT OF SUBTHRESHOLD DYNAMICS (step 2)
     ########################################################################################################
+    def initialize_eta(self):
+        self.eta.computeBins()
+        
     def fitSubthresholdDynamics(self, experiment, DT_beforeSpike=5.0, do_plot=False):
 
         print ("\nGIF MODEL - Fit subthreshold dynamics..." )
-
-        # Expand eta in basis functions
+        
         self.dt = experiment.dt
-        self.eta.computeBins()
 
         # Build X matrix and Y vector to perform linear regression (use all traces in training set)
         X = []

@@ -7,7 +7,7 @@ import itertools
 from scipy.signal import fftconvolve
 from scipy.optimize import leastsq
 
-from . import Tools
+import Tools
 
 class Filter :
 

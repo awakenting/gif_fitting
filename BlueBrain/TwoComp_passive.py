@@ -4,11 +4,11 @@ import numpy as np
 
 from numpy.linalg import inv
 
-from .ThresholdModel import ThresholdModel
-from .Filter_ThreeExpos import Filter_ThreeExpos
-from .Filter_Powerlaw import Filter_Powerlaw
-from . import Tools
-from . import cython_helpers as cyth
+from ThresholdModel import ThresholdModel
+from Filter_ThreeExpos import Filter_ThreeExpos
+from Filter_Powerlaw import Filter_Powerlaw
+import Tools
+import cython_helpers as cyth
 
 
 class TwoComp_passive(ThresholdModel) :
