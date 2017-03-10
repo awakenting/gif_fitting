@@ -18,6 +18,7 @@
 
 import struct
 import numpy
+import math
 
 def flatten(tup):
     out = ''
@@ -25,7 +26,7 @@ def flatten(tup):
         out += str(ch)
     return out
 
-def read(filename):
+def read(filename, return_dt_and_T=False):
     '''
     DEFINITION
     Reads Igor's (Wavemetric) binary wave format, .ibw, files.
@@ -85,13 +86,11 @@ def read(filename):
         dUnits = flatten(struct.unpack(format+'4c',f.read(4)))
         xUnits = flatten(struct.unpack(format+'4c',f.read(4)))
         npnts = struct.unpack(format+'i',f.read(4))[0]
-        print('variable npnts: ' + str(npnts) + ' dunit: ' + str(dUnits))
         amod = struct.unpack(format+'h',f.read(2))[0]
         dx = struct.unpack(format+'d',f.read(8))[0]
         x0 = struct.unpack(format+'d',f.read(8))[0]
         ignore = f.read(4) # 2 int16
         fsValid = struct.unpack(format+'h',f.read(2))[0]
-        print('dx: ' + str(dx) + ' x0 ' + str(x0))
         # RICHARD: why is this here??
         #x0 = float(x0*fsValid);
         #dx = float(dx*fsValid);
@@ -102,6 +101,12 @@ def read(filename):
         ignore = f.read(4) # 1 uint32
         # Numpy algorithm works a lot faster than struct.unpack 
         wdata = numpy.fromfile(f,dtype)
+        if isinstance(dx,float):
+            dt = dx*1000
+        else:
+            # if dx is something like 9.999e-05:
+            dt = round(dx[0],int(abs(math.log10(dx[0]))+3))*1000 # dt and T are in ms
+        T = npnts*dt
         
     elif version == 5:
         # pre header
@@ -121,7 +126,6 @@ def read(filename):
         CreationDate =  struct.unpack(format+'I',f.read(4))[0]
         modData =  struct.unpack(format+'I',f.read(4))[0]
         npnts =  struct.unpack(format+'i',f.read(4))[0]
-        print('variable npnts: ' + str(npnts))
         # wave header
         dtype = struct.unpack(format+'h',f.read(2))[0]
         if dtype == 2:
@@ -139,12 +143,10 @@ def read(filename):
         ignore = f.read(4) # 1 int32
         ignore = f.read(4) # 1 int32
         ndims = struct.unpack(format+'4i',f.read(16)) # Number of of items in a dimension -- 0 means no data.
-        print('variable ndims: ' + str(ndims))
         sfA = struct.unpack(format+'4d',f.read(32))
         sfB = struct.unpack(format+'4d',f.read(32))
         dUnits = flatten(struct.unpack(format+'4c',f.read(4)))
         xUnits = flatten(struct.unpack(format+'16c',f.read(16)))
-        print('sfA: ' + str(sfA) + ' ndims ' + str(ndims))
         fsValid = struct.unpack(format+'h',f.read(2))
         whpad3 = struct.unpack(format+'h',f.read(2))
         ignore = f.read(16) # 2 double
@@ -158,10 +160,16 @@ def read(filename):
         ignore = f.read(8) # 2 int32
         
         wdata = numpy.fromfile(f,dtype)
+        # if sfA is something like 9.999e-05:
+        dt = round(sfA[0],int(abs(math.log10(sfA[0]))+3))*1000 # dt and T are in ms
+        T = npnts*dt
     else:
         assert False, "Fileversion is of type '%i', not supported" % dtype
         wdata = []
         
     f.close()
-   
-    return wdata
+    
+    if return_dt_and_T:
+        return wdata, T, dt
+    else:
+        return wdata

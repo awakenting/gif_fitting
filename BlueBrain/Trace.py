@@ -1,24 +1,26 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import heapq
 
-from . import cython_helpers as cyth
-from . import ReadIBW
+import cython_helpers as cyth
+import ReadIBW
 
 
 class Trace :
 
     """
     An experiment includes many experimental traces.
-    A Trace contains the experimental data acquired during a single 
-    current-clamp injection (e.g., the training set injection, or one 
+    A Trace contains the experimental data acquired during a single
+    current-clamp injection (e.g., the training set injection, or one
     repetition of the test set injections).
-    
-    --- Edit by Andrej Warkentin ---    
+
+    --- Edit by Andrej Warkentin ---
     It can now also contain dendritic measurements.
     """
 
-    def __init__(self, V, V_units, I, I_units, T, dt, FILETYPE='Igor', V_d = 0, V_d_units = 1e-3, I_d = 0, I_d_units = 1e-9):
-        
+    def __init__(self, V, V_units, I, I_units, T, dt, FILETYPE='Igor', V_d = 0, V_d_units = 1e-3,
+                 I_d = 0, I_d_units = 1e-9):
+
         """
         V_units: specify in Volts the units of the experiment. For example if the orignial data are stored in mV, then use V_units = 10**-3.
         I_units: specify in Ampere the units for the input current (see V_units).
@@ -26,99 +28,124 @@ class Trace :
         - Igor: V and I should contain the path to .ibw files containing the data (V=voltage trace, I=current trace)
         - Array: V and I should be python vectors
         """
-        
-        self.T     = T                         # ms, duration of the recording    
+
+        self.recording_type = 'none'           # str, what kind of recording was this? (e.g. 'APWaveform', 'APThreshold' or 'IDRest')
+
+        self.T     = T                         # ms, duration of the recording
         self.dt    = dt                        # ms, timestep
-        
+
         self.I     = 0                         # nA, subthreshold somatic input current
-        self.V_rec = 0                         # mV, recorded somatic membrane potential   
-        
+        self.V_rec = 0                         # mV, recorded somatic membrane potential
+
         self.I_d     = 0                       # nA, subthreshold dendritic input current
-        self.V_d_rec = 0                       # mV, recorded dendritic membrane potential 
+        self.V_d_rec = 0                       # mV, recorded dendritic membrane potential
 
         self.AEC_flag    = False               # Has the trace been preprocessed with AEC?
         self.V           = 0                   # mV, somatic membrane potential (after AEC)
-        self.V_d           = 0                 # mV, dendritic membrane potential (after AEC)
-        
+        self.V_d         = 0                   # mV, dendritic membrane potential (after AEC)
+
+        self.estimated_input_amp = None        # pA, estimated input amplitude (only for IDRest traces)
+                                               # Estimated as median value, rounded to 10's of pA, e.g. 346 pA -> 350 pA
+
         self.spks_flag   = False               # Do somatic spikes have been detected?
-        self.spks        = 0                   # dendritic spike indices stored in indices (and not in ms!)
-        
-        self.spks_d_flag   = False             # Do dendritic spikes have been detected?
-        self.spks_d        = 0                 # dendritic spike indices stored in indices (and not in ms!)
-                
-        self.useTrace    = True                # if false this trace will be neglected while fitting spiking models to data        
+        self.spks        = []                  # dendritic spike indices stored in indices (and not in ms!)
+
+        self.spks_d_flag = False               # Do dendritic spikes have been detected?
+        self.spks_d      = [0]                  # dendritic spike indices stored in indices (and not in ms!)
+
+        self.useTrace    = True                # if false this trace will be neglected while fitting spiking models to data
         self.ROI         = [[0.0,T]]           # ms, list of intervals defining the region of the trace that has to be used for fitting
 
-    
-             
+
+
         # LOAD EXPERIMENTAL DATA FROM IGOR FILE (V AND I SHOULD COTAIN PATH OF DATA FILES)
         if FILETYPE=='Igor' :
-                        
+
             V_rec       = ReadIBW.read(V)
-            self.V_rec  = np.array(V_rec[:int(T/self.dt)])*V_units/10**-3        # convert voltage trace to mV
-                        
+            self.V_rec  = np.array(V_rec[:int(self.T/self.dt)])*V_units/10**-3        # convert voltage trace to mV
+
             I           = ReadIBW.read(I)
-            self.I     = np.array(I[:int(T/self.dt)])*I_units/10**-9             # convert input current trace to nA
-            
+            self.I     = np.array(I[:int(self.T/self.dt)])*I_units/10**-9             # convert input current trace to nA
+
             if not type(V_d) == int:
                 V_d_rec       = ReadIBW.read(V_d)
-                self.V_d_rec  = np.array(V_d_rec[:int(T/self.dt)])*V_d_units/10**-3        # convert voltage trace to mV
-                            
+                self.V_d_rec  = np.array(V_d_rec[:int(self.T/self.dt)])*V_d_units/10**-3        # convert voltage trace to mV
+
                 I_d           = ReadIBW.read(I_d)
-                self.I     = np.array(I_d[:int(T/self.dt)])*I_d_units/10**-9             # convert input current trace to nA
+                self.I     = np.array(I_d[:int(self.T/self.dt)])*I_d_units/10**-9             # convert input current trace to nA
 
 
         # LOAD EXPERIMENTAL DATA FROM VECTOR (V AND I SHOULD COTAIN ARRAYS OR LISTS)
 
         if FILETYPE=='Array' :
             # set somatic voltage and current
-            self.V_rec = np.array(V[:int(T/self.dt)])*V_units/10**-3        # set mV
-            self.I     = np.array(I[:int(T/self.dt)])*I_units/10**-9        # set nA
-            
+            self.V_rec = np.array(V[:int(self.T/self.dt)])*V_units/10**-3        # set mV
+            self.I     = np.array(I[:int(self.T/self.dt)])*I_units/10**-9        # set nA
+
             if not type(V_d) == int:
                 # set dendritic voltage and current
-                self.V_d_rec = np.array(V_d[:int(T/self.dt)])*V_d_units/10**-3        # set mV
-                self.I_d     = np.array(I_d[:int(T/self.dt)])*I_d_units/10**-9        # set nA
+                self.V_d_rec = np.array(V_d[:int(self.T/self.dt)])*V_d_units/10**-3        # set mV
+                self.I_d     = np.array(I_d[:int(self.T/self.dt)])*I_d_units/10**-9        # set nA
 
 
         self.V_rec = np.array(self.V_rec,dtype="double")
         self.I     = np.array(self.I,dtype="double")
         self.V     = self.V_rec
-        
+
         if not type(V_d) == int:
             self.V_d_rec = np.array(self.V_d_rec,dtype="double")
             self.I_d     = np.array(self.I_d,dtype="double")
             self.V_d     = self.V_d_rec
-        
+
         self.ROI   = [ [0, len(self.V_rec)*self.dt] ]                       # by default everything is ROI
-    
-    
-    
+
+
+    #################################################################################################
+    # Loading raw data
+    #################################################################################################
+
+    @classmethod
+    def get_dt_and_T_from_file(cls, V_file, V_units, I_file, I_units, FILETYPE='Igor', V_d = 0,
+                               V_d_units = 1e-3, I_d = 0, I_d_units = 1e-9):
+        """
+        Get the length T and the time step size dt from the ibw file and instantiate the Trace.
+        Also checks if these values are the same for voltage and current file and asserts errors
+        if not.
+        """
+        _, v_ibw_T, v_ibw_dt = ReadIBW.read(V_file, return_dt_and_T=True)
+        _, i_ibw_T, i_ibw_dt = ReadIBW.read(I_file, return_dt_and_T=True)
+
+        assert v_ibw_T == i_ibw_T
+        assert v_ibw_dt == i_ibw_dt
+
+        return cls(V_file, V_units, I_file, I_units, v_ibw_T, v_ibw_dt, FILETYPE, V_d, V_d_units, I_d, I_d_units)
+
+
     #################################################################################################
     # FUNCTIONS ASSOCIATED WITH ROI
     #################################################################################################
 
     def enable(self):
-        
+
         """
         If you want to use this trace call this function. By default traces are enabled.
         When enable is called, ROI is set to be the entire trace.
         """
-            
+
         self.useTrace = True
         self.ROI      = [ [0, len(self.V_rec)*self.dt] ]
 
 
     def disable(self):
-        
+
         """
         If you dont want to use this trace during the fit, call this function.
         """
-        
+
         self.useTrace = False
         self.ROI      = [ [0, 0] ]
-     
-     
+
+
     def setROI(self, ROI_intervals):
 
         """
@@ -126,28 +153,28 @@ class Trace :
         Use this function the specify which parts of the trace have to be used for fitting.
         """
         self.useTrace = True
-        self.ROI = ROI_intervals   
-        
+        self.ROI = ROI_intervals
+
 
     def getROI(self):
-        
+
         """
         Return indices of the trace which are in ROI
         """
-        
+
         ROI_region = np.zeros(int(self.T/self.dt))
 
         for ROI_interval in self.ROI :
             ROI_region[int(ROI_interval[0]/self.dt) : int(ROI_interval[1]/self.dt)] = 1.0
-        
+
         ROI_ind = np.where(ROI_region == 1.0)[0]
-        
+
         # Make sure indices are ok
         ROI_ind = ROI_ind[ np.where(ROI_ind<int(self.T/self.dt))[0] ]
-        
+
         return ROI_ind
-    
-    
+
+
     def getROI_FarFromSpikes(self, DT_before, DT_after):
 
         """
@@ -156,12 +183,12 @@ class Trace :
         DT_after: ms
         These two parameters define the region to cut around spikes.
         """
-        
+
         L = len(self.V)
-        
-        LR_flag = np.ones(L)    
-        
-        
+
+        LR_flag = np.ones(L)
+
+
         # Select region in ROI
         ROI_ind = self.getROI()
         LR_flag[ROI_ind] = 0.0
@@ -169,45 +196,45 @@ class Trace :
         # Remove region around spikes
         DT_before_i = int(DT_before/self.dt)
         DT_after_i  = int(DT_after/self.dt)
-        
-        
+
+
         for s in self.spks :
-            
+
             lb = max(0, s - DT_before_i)
             ub = min(L, s + DT_after_i)
-            
+
             LR_flag[ lb : ub] = 1
-            
-        
-        indices = np.where(LR_flag==0)[0]  
+
+
+        indices = np.where(LR_flag==0)[0]
 
         return indices
 
-    
+
     def getROI_cutInitialSegments(self, DT_initialcutoff):
 
         """
         Return indices of the trace which are in ROI. Exclude all initial segments in each ROI.
         DT_initialcutoff: ms, width of region to cut at the beginning of each ROI section.
         """
-        
+
         DT_initialcutoff_i = int(DT_initialcutoff/self.dt)
         ROI_region = np.zeros(int(self.T/self.dt))
 
         for ROI_interval in self.ROI :
-            
-            lb = int(ROI_interval[0]/self.dt) + DT_initialcutoff_i            
+
+            lb = int(ROI_interval[0]/self.dt) + DT_initialcutoff_i
             ub = int(ROI_interval[1]/self.dt)
-            
+
             if lb < ub :
                 ROI_region[lb:ub] = 1.0
-        
+
         ROI_ind = np.where(ROI_region == 1.0)[0]
-        
+
         # Make sure indices are ok
         ROI_ind = ROI_ind[ np.where(ROI_ind<int(self.T/self.dt))[0] ]
-        
-        return ROI_ind
+
+        return ROI_ind      
 
 
     #################################################################################################
@@ -215,43 +242,43 @@ class Trace :
     #################################################################################################
 
     def detectSpikes_python(self, threshold=0.0, ref=3.0):
-        
+
         """
         Detect action potentials by threshold crossing (parameter threshold, mV) from below (i.e. with dV/dt>0).
         To avoid multiple detection of same spike due to noise, use an 'absolute refractory period' ref, in ms.
-        """ 
-        
+        """
+
         self.spks = []
         ref_ind = int(ref/self.dt)
         t=0
         while (t<len(self.V)-1) :
-            
+
             if (self.V[t] >= threshold and self.V[t-1] <= threshold) :
                 self.spks.append(t)
                 t+=ref_ind
             t+=1
-                        
+
         self.spks = np.array(self.spks)
         self.spks_flag = True
-        
+
     def detect_dendritic_Spikes_python(self, threshold=0.0, ref=3.0):
-        
+
         """
         This function shall detect "dendritic spikes" but first I have to find
-        a good definition for them, since they're more variable than the 
+        a good definition for them, since they're more variable than the
         somatic ones. It should also be implemented in cython as well.
-        """ 
-        
+        """
 
-        
+
+
     def detectSpikes_cython(self, threshold=0.0, ref=3.0):
-        
+
         """
         Detect action potentials by threshold crossing (parameter threshold, mV) from below (i.e. with dV/dt>0).
         To avoid multiple detection of same spike due to noise, use an 'absolute refractory period' ref, in ms.
         Code implemented in C.
-        """ 
-        
+        """
+
         # Define parameters
         p_T_i     = int(np.round(self.T/self.dt))
         p_ref_ind = int(np.round(ref/self.dt))
@@ -260,54 +287,136 @@ class Trace :
         # Define vectors
         V  =   np.array(self.V, dtype='double')
 
-                
+
         spike_train = np.zeros(p_T_i)
         spike_train = np.array(spike_train, dtype='double')
-        
+
         spike_train = cyth.c_detectSpikes(p_T_i,p_ref_ind,p_threshold,V)
-        
+
         spks_ind = np.where(spike_train==1.0)[0]
 
         self.spks = np.array(spks_ind)
-        self.spks_flag = True       
+        self.spks_flag = True
 
 
 
     def computeAverageSpikeShape(self):
-        
+
         """
         Compute the average spike shape using spikes in ROI.
         """
-        
+
         DT_before = 10.0
         DT_after = 20.0
-        
+
         DT_before_i = int(DT_before/self.dt)
         DT_after_i  = int(DT_after/self.dt)
-    
+
         if self.spks_flag == False :
             self.detectSpikes_cython()
-         
-                
+
+
         all_spikes = []
-        
+
         ROI_ind = self.getROI()
 
         for s in self.spks :
-            
+
             # Only spikes in ROI are used
             if s in ROI_ind :
-                
-                # Avoid using spikes close to boundaries to avoid errors             
+
+                # Avoid using spikes close to boundaries to avoid errors
                 if s > DT_before_i  and s < (len(self.V) - DT_after_i) :
                     all_spikes.append( self.V[ s - DT_before_i : s + DT_after_i ] )
-    
+
         spike_avg = np.mean(all_spikes, axis=0)
         support   = np.linspace(-DT_before, DT_after, len(spike_avg))
         spike_nb  = len(all_spikes)
-        
+
         return (support, spike_avg, spike_nb)
-        
+
+    def compute_average_spike_features(self):
+        """
+        Compute the average spike shape using spikes in ROI.
+        """
+
+        DT_before = 10.0
+        DT_after = 20.0
+
+        DT_before_i = int(DT_before/self.dt)
+        DT_after_i  = int(DT_after/self.dt)
+
+        peak_before = 2.0
+        peak_after = 2.0
+
+        peak_before_i = int(peak_before/self.dt)
+        peak_after_i  = int(peak_after/self.dt)
+
+
+        if self.spks_flag == False :
+            self.detectSpikes_cython()
+
+        all_spikes = []
+
+        # lists for spike features
+        self.peak_times = []
+        self.max_dV_values = []
+        self.max_dV_times = []
+        self.threshold_times = []
+        self.threshold_values = []
+
+        ROI_ind = self.getROI()
+
+        dV = np.diff(self.V)
+
+        for s in self.spks :
+
+            # Only spikes in ROI are used
+            if s in ROI_ind :
+
+                # Avoid using spikes close to boundaries to avoid errors
+                if s > DT_before_i  and s < (len(self.V) - DT_after_i) :
+                    absolute_peak_time = np.argmax(self.V[s - peak_before_i : s + peak_after_i]) + s - peak_before_i
+
+                    max_dV_value = np.max(dV[ absolute_peak_time - peak_before_i : absolute_peak_time])
+
+                    absolute_max_dV_time = np.argmax(dV[ absolute_peak_time - peak_before_i : absolute_peak_time]) +\
+                                            absolute_peak_time - peak_before_i
+
+                    absolute_threshold_time = np.where(dV[absolute_max_dV_time - DT_before_i : absolute_max_dV_time] \
+                                                       < max_dV_value*0.05)[0][-1] + absolute_max_dV_time - DT_before_i
+
+                    threshold_value = self.V[absolute_threshold_time]
+
+                    # add values to lists
+                    self.peak_times.append(absolute_peak_time)
+                    self.max_dV_values.append(max_dV_value)
+                    self.max_dV_times.append(absolute_max_dV_time)
+                    self.threshold_times.append(absolute_threshold_time)
+                    self.threshold_values.append(threshold_value)
+
+                    all_spikes.append( self.V[ absolute_peak_time - DT_before_i : absolute_peak_time + DT_after_i ] )
+
+        self.peak_times = np.array(self.peak_times)
+        self.max_dV_values = np.array(self.max_dV_values)
+        self.max_dV_times = np.array(self.max_dV_times)
+        self.threshold_times = np.array(self.threshold_times)
+        self.threshold_values = np.array(self.threshold_values)
+
+        self.relative_peak_times = np.ones(self.peak_times.shape)*DT_before_i
+        self.relative_max_dV_times = self.max_dV_times - (self.peak_times - DT_before_i)
+        self.relative_threshold_times = self.threshold_times - (self.peak_times - DT_before_i)
+
+        self.avg_thr = np.mean(self.threshold_values)
+        self.spike_waveforms = np.array(all_spikes)
+
+        spike_avg = np.mean(all_spikes, axis=0)
+        support   = np.linspace(-DT_before, DT_after, len(spike_avg))
+        spike_nb  = len(all_spikes)
+
+        return (support, spike_avg, spike_nb, self.avg_thr)
+
+
     def computeAverage_dendriticSpikeShape(self):
         """
         This function shall compute the average shape of a "dendritic spike"
@@ -315,125 +424,180 @@ class Trace :
 
 
     def getSpikeTrain(self):
-        
+
         """
-        Return spike train defined as a vector of 0s and 1s. Each bin represent self.dt 
+        Return spike train defined as a vector of 0s and 1s. Each bin represent self.dt
         """
-                
+
         spike_train = np.zeros( int(self.T/self.dt) )
-        
+
         if len(self.spks) > 0 :
-        
+
             spike_train[self.spks] = 1
 
         return spike_train
 
 
     def getSpikeTimes(self):
-        
+
         """
         Return spike times in units of ms.
         """
-        
+
         return self.spks*self.dt
 
 
     def getSpikeIndices(self):
-        
+
         """
         Return spike indices in units of dt.
         """
-        
+
         return self.spks
 
 
     def getSpikeNb(self):
-        
+
         return len(self.spks)
 
 
     #################################################################################################
     # GET STATISTICS, COMPUTED IN ROI
-    #################################################################################################  
-    
+    #################################################################################################
+
     def getSpikeNb_inROI(self):
-        
+
         if len(self.spks) == 0 :
-            
+
             return 0
-        
+
         else :
-        
+
             spike_train = self.getSpikeTrain()
-            ROI_ind = self.getROI()  
-            
+            ROI_ind = self.getROI()
+
             nbSpikes = np.sum(spike_train[ROI_ind])
-            
+
             return nbSpikes
+        
+
+    def getMeanISI_inROI(self):
+        """
+        Return the mean interspike interval in ROI in ms.
+        """
+        if self.getSpikeNb_inROI() < 3:
+            return None
+        else:
+            sp_times = self.getSpikeTimes()
+            return np.mean(np.diff(sp_times))
 
 
     def getTraceLength_inROI(self):
-        
+
         """
         Return in ms the duration of ROI region.
         """
-        ROI_ind = self.getROI()  
-        
+        ROI_ind = self.getROI()
+
         return (len(ROI_ind)*self.dt)
 
 
-
-    def getFiringRate_inROI(self):
+    def getFiringRate_inROI(self, by='spike_count', initial_cut=100):
         
         """
         Return the average firing rate (in Hz) in ROI.
+        This can be done in two ways, indicated by the parameter 'by':
+        1) By 'spike_count" means, that the number of spikes is divided
+        by the length of the ROI.
+        2) By 'mean_isi' means that the inverse of the average
+        Interspike Interval is taken.
+        
+        The parameter 'initial_cut' determines the length of an initial
+        segment that won't be considered for either of the calculations.
+        It starts at beginning of the onset of the input current and
+        is given in ms .
         """
-        
-        return 1000.0 * self.getSpikeNb_inROI()/self.getTraceLength_inROI()
-    
-    
+        #stimulation_ival = self.get_stimulation_interval()
+        #self.setROI([[stimulation_ival[0] + initial_cut, stimulation_ival[1]]])
+        if self.T == 3000:
+            self.setROI([[700 + initial_cut, 2700]])
+        if self.T == 6000:
+            self.setROI([[700 + initial_cut, 5700]])
+        if self.T == 12000:
+            self.setROI([[700 + initial_cut, 11700]])
+            
+        nspks = self.getSpikeNb_inROI()
+        if  nspks < 1:
+            return 0.0
+        elif nspks < 3:
+            return 1000.0 * nspks/self.getTraceLength_inROI()
+        else:
+            if by == 'spike_count':
+                return 1000.0 * nspks/self.getTraceLength_inROI()
+            elif by == 'mean_isi':
+                return 1000.0 * 1/self.getMeanISI_inROI()
+
+
     #################################################################################################
-    # GET TIME
-    #################################################################################################    
-    
+    # Other auxilliary methods
+    #################################################################################################
+
     def getTime(self):
-        
-        return np.arange(int(self.T/self.dt))*self.dt        
+
+        return np.arange(int(self.T/self.dt))*self.dt
+
+    def get_estimated_input_amp(self):
+        if self.estimated_input_amp is None:
+            self.estimated_input_amp = self.estimate_input_amp()
+        return self.estimated_input_amp
+
+    def estimate_input_amp(self):
+        if self.recording_type == 'IDRest':
+            self.estimated_input_amp = np.around(np.median(self.I*100))*10
+            
+    def get_stimulation_interval(self):
+        """
+        Return the time interval of the step current.
+        Use this method only for IDRest traces that have a single step current.
+        """
+        abs_diff_current = np.abs(np.diff(self.I))
+        ival = np.where(abs_diff_current >= heapq.nlargest(2, abs_diff_current)[1])[0]
+        return ival*self.dt
 
 
     #################################################################################################
     # FUNCTIONS ASSOCIATED WITH PLOTTING
     #################################################################################################
-    
+
     def plot(self):
-        
+
         """
         Plot input current, recorded voltage, voltage after AEC (is applicable) and detected spike times (if applicable)
         """
-        
+
         time = self.getTime()
-        
+
         plt.figure(figsize=(10,4), facecolor='white')
-                
+
         plt.subplot(2,1,1)
         plt.plot(time,self.I, 'gray')
         plt.ylabel('I (nA)')
-        
+
         plt.subplot(2,1,2)
         plt.plot(time,self.V_rec, 'black')
-        
+
         if self.AEC_flag :
-            plt.plot(time,self.V, 'red')  
+            plt.plot(time,self.V, 'red')
 
         if self.spks_flag :
-            plt.plot(self.getSpikeTimes(),np.zeros(len(self.spks)), '.', color='blue')  
-        
-        # Plot ROI (region selected for performing operations)   
-        ROI_vector = 100.0*np.ones(len(self.V))      
+            plt.plot(self.getSpikeTimes(),np.zeros(len(self.spks)), '.', color='blue')
+
+        # Plot ROI (region selected for performing operations)
+        ROI_vector = 100.0*np.ones(len(self.V))
         ROI_vector[self.getROI() ] = -100.0
         plt.fill_between(self.getTime(), ROI_vector, -100.0, color='0.2')
-        
-        
+
+
         plt.ylim([min(self.V)-5.0, max(self.V)+5.0])
         plt.ylabel('V rec (mV)')
         plt.xlabel('Time (ms)')
