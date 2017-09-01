@@ -1,8 +1,8 @@
 import abc
 import numpy as np
 
-from SpikingModel import SpikingModel
-import Tools
+from .SpikingModel import SpikingModel
+from . import Tools
 
 
 class ThresholdModel(SpikingModel):

@@ -2,7 +2,7 @@ import abc
 import numpy as np
 import pickle as pkl
 
-import Tools
+from . import Tools
 
 
 class SpikingModel:

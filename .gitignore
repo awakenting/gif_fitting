@@ -9,3 +9,5 @@
 *ipynb_checkpoints*
 *.so
 .idea*
+*.egg-info/
+dist*

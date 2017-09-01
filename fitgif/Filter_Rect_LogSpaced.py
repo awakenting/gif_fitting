@@ -2,8 +2,8 @@ import numpy as np
 
 from scipy.signal import fftconvolve
 
-import Tools
-from Filter import Filter
+from . import Tools
+from .Filter import Filter
 
 
 class Filter_Rect_LogSpaced(Filter) :

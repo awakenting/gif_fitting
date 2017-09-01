@@ -2,8 +2,8 @@ import numpy as np
 
 from scipy.signal import fftconvolve
 
-from Filter import Filter
-import Tools
+from .Filter import Filter
+from . import Tools
 
 
 class Filter_Powerlaw(Filter) :

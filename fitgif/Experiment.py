@@ -2,9 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pickle as pkl
 
-from SpikeTrainComparator import SpikeTrainComparator
-from TwoComp_passive import TwoComp_passive
-from Trace import Trace
+from .SpikeTrainComparator import SpikeTrainComparator
+from .TwoComp_passive import TwoComp_passive
+from .Trace import Trace
 
 
 class Experiment :

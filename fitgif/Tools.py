@@ -2,7 +2,7 @@ import sys
 import numpy as np
 from scipy.optimize import leastsq
 
-import cython_helpers as cyth
+from . import cython_helpers as cyth
 
 #==============================================================================
 # Helpers for data from BlueBrain project
